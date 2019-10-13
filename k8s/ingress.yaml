@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bcc-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api/?(.*)
+            backend:
+              serviceName: api-server
+              servicePort: 5000
+          - path: /?(.*)
+            backend:  
+              serviceName: web-client
+              servicePort: 3000

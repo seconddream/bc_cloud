@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: job-worker
+  template:
+    metadata:
+      labels:
+        component: job-worker
+    spec:
+      serviceAccountName: job-worker
+      initContainers:
+        - name: check-redis
+          image: redis
+          command: [
+            'sh',
+            '-c',
+            'until redis-cli -h redis -p 6379 ping; do echo waiting...; sleep 1; done;'
+          ]
+      containers:
+        - name: job-worker
+          image: bcc/job-worker
+          # ports:
+          #   - containerPort: 5000
