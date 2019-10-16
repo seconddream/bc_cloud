@@ -1,64 +1,60 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const projectApi = require('./project')
+const { startServer } = require("./server");
+const CacheService = require('./cache')
+const DBService = require('./db')
 
-const port = 5000
-const app = express()
-app.use(bodyParser.json())
+const wait = timeout =>
+  new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, timeout * 1000);
+  });
 
-app.get('/', (req, res)=>{
-  console.log('api server getting request....')
-  res.send('API-Server response')
-})
+const main = async () => {
 
-// project ---------------------------------------------------------------------
+  const dbConnectionTimeout = 600 * 1000
+  const redisHost = 'bcc-cache.default.svc.cluster.local'
+  const redisPort = 6379
+  const mongoHost = 'bcc-db.default.svc.cluster.local'
+  const mongoPort = 27017
+  const apiServerPort = 5000;
 
-app.post('/projects/')
-app.get('/projects/:projectId/')
-app.delete('/projects/:projectId')
-
-// chain
-// one chain per project allowed
-app.post('/projects/:projectId/chain', projectApi.deployChain)
-app.get('/projects/:projectId/chain')
-app.delete('/projects/:projectId/chain')
-
-// micro-services in chain
-app.post('/projects/:projectId/services/')
-app.get('/projects/:projectId/services/:serviceId')
-app.delete('/projects/:projectId/services/:serviceId')
-
-// contracts in one micro-services (contracts as single file??)
-app.post('/projects/:projectId/services/:serviceId/contracts/')
-app.put('/projects/:projectId/services/:serviceId/contracts/')
-app.get('/projects/:projectId/services/:serviceId/contracts/versions/')
-app.get('/projects/:projectId/services/:serviceId/contracts/versions/version:Id')
-
-// exposed contract call
-app.get('/projectes/:projectId/service/:servicedId/apiCall/:apiName')
-
-// helper apis
-app.delete('/jobQueue', async(req, res)=>{
-  try {
-    await api.clearJobQueue()
-    res.json({error:null})
-  } catch (error) {
-    res.json({error})
+  // connect to redis
+  let startTime = Date.now()
+  while (true) {
+    try {
+      console.log(`[api-server]: connecting to bcc-cache service at ${redisHost}:${redisPort}...`)
+      await CacheService.connectToRedis(redisHost, redisPort)
+      break
+    } catch (error) {
+      if(Date.now()-startTime > dbConnectionTimeout){
+        console.log(error)
+        throw new Error('Failed to connect to bcc-cache service.')
+      }
+      await wait(5)
+    }
   }
-})
+  console.log(`[api-server]: bcc-cache service connected.`);
 
-app.get('/jobQueue', async(req, res)=>{
-  try {
-    const queue = await api.getJobQueue()
-    res.json({error: null, queue})
-  } catch (error) {
-    res.json({error})
+  // connect to mongo
+  startTime = Date.now()
+  while (true) {
+    try {
+      console.log(`[api-server]: connecting to bcc-db service at ${mongoHost}:${mongoPort}...`)
+      await DBService.connetToMongo(mongoHost, mongoPort)
+      break
+    } catch (error) {
+      if(Date.now()-startTime > dbConnectionTimeout){
+        console.log(error)
+        throw new Error('Failed to connect to bcc-db service.')
+      }
+      await wait(5)
+    }
   }
-})
+  console.log(`[api-server]: bcc-db service connected.`);
+  
 
+  await startServer(apiServerPort);
+  console.log(`[api-server]: api-server start listening at ${apiServerPort}...`);
+};
 
-app.listen(port, ()=>{
-  console.log(`api_server: listening at ${port}...`)
-})
-
-
+main();

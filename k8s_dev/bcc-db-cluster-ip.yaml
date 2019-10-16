@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: bcc-db
 spec:
   type: ClusterIP
   selector:
-    component: redis
+    component: bcc-db
   ports:
-    - port: 6379
-      targetPort: 6379
+    - port: 27017
+      targetPort: 27017

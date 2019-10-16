@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcc-db-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: bcc-db
+  template:
+    metadata:
+      labels:
+        component: bcc-db
+    spec:
+      volumes:
+        - name: bcc-db-storage
+          persistentVolumeClaim:
+            claimName: bcc-db-storage
+      containers:
+        - name: mongo
+          image: mongo
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: password
+          ports:
+            - containerPort: 27017
+          volumeMounts: 
+            - mountPath: "/data/db"
+              name: bcc-db-storage
+
+
+  

@@ -30,15 +30,18 @@ build:
 deploy:
   kubectl:
     manifests:
-      - ./k8s/cluster-role-binding-job-worker.yaml
-      - ./k8s/service-account-job-worker.yaml
-      - ./k8s/cluster-ip-redis.yaml
-      - ./k8s/deployment-redis.yaml
-      - ./k8s/cluster-ip-api-server.yaml
-      - ./k8s/deployment-api-server.yaml
-      - ./k8s/deployment-job-worker.yaml
-      # - ./k8s/cluster-ip-web-client.yaml
-      # - ./k8s/deployment-web-client.yaml
-      - ./k8s/ingress.yaml
-      # - ./k8s/k8s/deployment-testdrivechain.yaml
+      - ./k8s_dev/bcc-agent-service-account.yaml
+      - ./k8s_dev/bcc-agent-cluster-role-binding.yaml
+      - ./k8s_dev/bcc-db-cluster-ip.yaml
+      - ./k8s_dev/bcc-db-secret.yaml
+      - ./k8s_dev/bcc-db-pvc.yaml
+      - ./k8s_dev/bcc-db-deployment.yaml
+      - ./k8s_dev/bcc-cache-cluster-ip.yaml
+      - ./k8s_dev/bcc-cache-deployment.yaml
+
+      - ./k8s_dev/bcc-api-server-cluster-ip.yaml
+      - ./k8s_dev/bcc-api-server-deployment.yaml
+      # - ./k8s_dev/deployment-job-worker.yaml
+      # - ./k8s_dev/ingress.yaml
+      # - ./k8s_dev/k8s/deployment-testdrivechain.yaml
 

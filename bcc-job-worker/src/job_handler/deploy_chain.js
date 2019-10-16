@@ -2,16 +2,15 @@ const Web3 = require('web3')
 const web3 = new Web3(Web3.givenProvider)
 const uuid = require("uuid/v1");
 
-const { JobType, JobValidationSchema } = require("../job");
 const { k8sCoreV1Api, k8sAppV1Api } = require("../k8s");
 const ClusterObject = require("../cluster_object/index");
 
-const getGenesisJson = (networkId, chainType, signerAccounts)=>{
+const getGenesisJson = (networkId, chainType, signers)=>{
   switch (chainType) {
     case 'poa':
       const alloc = {}
-      signerAccounts.forEach(account=>{
-        alloc[account.address.slice(2)] = {
+      signers.forEach(signer=>{
+        alloc[signer.account.address.slice(2)] = {
           balance: '0x200000000000000000000000000000000000000000000000000000000000000'
         }
       })
@@ -33,7 +32,7 @@ const getGenesisJson = (networkId, chainType, signerAccounts)=>{
         },
         "nonce": "0x0",
         "timestamp": "0x59e50516",
-        "extraData": `0x${'0'.repeat(64)}${signerAccounts.map(account=>account.address.slice(2)).join('')}${'0'.repeat(130)}`,
+        "extraData": `0x${'0'.repeat(64)}${signers.map(signer=>signer.account.address.slice(2)).join('')}${'0'.repeat(130)}`,
         "gasLimit": "0x1000000000000",
         "difficulty": "0x2",
         "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -52,13 +51,6 @@ const getGenesisJson = (networkId, chainType, signerAccounts)=>{
 const deployChain = async (job, logger) => {
   try {
     const { config } = job;
-
-    // job validation
-    const validateError = JobValidationSchema.DEPLOY_CHAIN.validate(config);
-    if (validateError.length > 0) {
-      throw new Error(validateError.map(error => error.message).join("; "));
-    }
-
     const {
       projectId,
       chainType,
@@ -76,32 +68,43 @@ const deployChain = async (job, logger) => {
     );
     logger.info(`Namespace ${projectId} created.`);
 
-    // create miner passwords secret -------------------------------------------
-    const signerAccounts = []
+    // network id --------------------------------------------------------------
     const networkId = parseInt(Math.random()*10000)+100
+
+    // create signers and non-signers ------------------------------------------
+    const signers = []
     for(let i = 0; i < signerCount; i++){
-      logger.info(`Prepare signer ${i} account secret...`);
-      const rpc_port = (8546 + i).toString()
       const port = (30303 + i).toString()
-      const signerAccount = web3.eth.accounts.create()
-      signerAccount.pass = uuid()
-      signerAccounts.push(signerAccount)
+      const account = web3.eth.accounts.create()
+      const signer = {
+        account,
+        password: uuid(),
+        port,
+      }
+      signers.push(signer)
       await k8sCoreV1Api.createNamespacedSecret(
         projectId,
         ClusterObject.Secret.create({
           name: `signer${i}-secret`,
           stringData: {
-            account: signerAccount.address,
-            password: signerAccount.pass,
-            private_key: signerAccount.privateKey.slice(2),
-            rpc_port,
-            port
+            password: signer.password,
           },
         })
       );
     }
+
+    const nonSigners = []
+    for (let i=0; i < nonSignerCount; i++){
+      const port = (30303 + signerCount + i).toString()
+      const rpcPort = (8545 + i).toString()
+      const nonSigner = {
+        port, rpcPort,
+      }
+      nonSigners.push(nonSigner)
+    }
+
     // create genesis.json and stores in config map
-    const genesisJsonObj = getGenesisJson(networkId, chainType, signerAccounts)
+    const genesisJsonObj = getGenesisJson(networkId, chainType, signers)
     const genesis = JSON.stringify(genesisJsonObj)
     await k8sCoreV1Api.createNamespacedConfigMap(
       projectId,
@@ -147,8 +150,8 @@ const deployChain = async (job, logger) => {
       projectId,
       ClusterObject.ChainDeployment.create({
         chainName: projectId,
-        signerAccounts,
-        nonSignerCount
+        singers,
+        nonSigners
       })
     );
     logger.info(`Chain containers deployed.`);

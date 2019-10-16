@@ -1,5 +1,5 @@
 const create = (options)=>{
-  const { chainName, signerAccounts, nonSignerCount } = options
+  const { chainName, signers, nonSigners } = options
   return {
     apiVersion: 'apps/v1',
     kind: 'Deployment',
@@ -77,7 +77,7 @@ const create = (options)=>{
               ],
             },
             // signer node
-            ...signerAccounts.map((account, index)=>{
+            ...signers.map((signer, index)=>{
               return {
                 name: `node-${index}`,
                 image: 'ethereum/client-go:alltools-latest',
@@ -87,10 +87,13 @@ const create = (options)=>{
                   '-c',
                   `geth \
                     --datadir /bcc/node${index}-data --bootnodes=\`cat /bcc/bootnode-data/bootnodeAddress.txt\` \
-                    --rpc --rpcport $(RPC_PORT) --port $(PORT) \
+                    --port $(PORT) \
                     --unlock $(ACCOUNT) --password /bcc/node${index}-data/signer_password.txt \
                     --networkid \`cat /bcc/network-config/networkId\` \
                     --gasprice "0" --mine`
+                ],
+                ports: [
+                  
                 ],
                 env: [
                   {

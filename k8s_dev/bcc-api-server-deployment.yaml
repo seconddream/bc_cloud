@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcc-api-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: bcc-api-server
+  template:
+    metadata:
+      labels:
+        component: bcc-api-server
+    spec:
+      serviceAccountName: bcc-agent
+      # initContainers:
+      #   - name: check-redis
+      #     image: redis
+      #     command: [
+      #       'sh',
+      #       '-c',
+      #       'until redis-cli -h redis -p 6379 ping; do echo waiting...; sleep 1; done;'
+      #     ]
+      containers:
+        - name: api-server
+          image: bcc/api-server
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: password
