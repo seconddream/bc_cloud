@@ -1,0 +1,37 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: bc-cloud
+build:
+  local:
+    push: false
+  artifacts:
+    - image: bcc/api-server
+      context: ../bcc-api-server
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        infer:
+          - '**/*.js'
+    - image: bcc/job-worker
+      context: ../bcc-job-worker
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        infer:
+          - '**/*.js'
+    # - image: bcc/web-client
+    #   context: ./bcc-web-client
+    #   docker:
+    #     dockerfile: Dockerfile.dev
+    #   sync:
+    #     infer:
+    #       - '**/*.js'
+deploy:
+  kubectl:
+    manifests:
+      - ./bcc-api-server-cluster-ip.yaml
+      - ./bcc-api-server-deployment.yaml
+      - ./ingress.yaml
+
+

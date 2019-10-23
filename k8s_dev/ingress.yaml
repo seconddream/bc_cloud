@@ -9,11 +9,16 @@ spec:
   rules:
     - http:
         paths:
+          - path: /db/?(.*)
+            backend:
+              serviceName: bcc-db
+              servicePort: 27017
           - path: /api/?(.*)
             backend:
-              serviceName: api-server
+              serviceName: bcc-api-server
               servicePort: 5000
           - path: /?(.*)
             backend:  
               serviceName: web-client
               servicePort: 3000
+          

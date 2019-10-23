@@ -1,0 +1,20 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: bc-cloud
+build:
+  local:
+    push: false
+deploy:
+  kubectl:
+    manifests:
+      - ./bcc-agent-service-account.yaml
+      - ./bcc-agent-cluster-role-binding.yaml
+      - ./bcc-db-cluster-ip.yaml
+      - ./bcc-db-secret.yaml
+      - ./bcc-db-pvc.yaml
+      - ./bcc-db-deployment.yaml
+      - ./bcc-cache-cluster-ip.yaml
+      - ./bcc-cache-deployment.yaml
+      
+
