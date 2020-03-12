@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcc-chain-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: bcc-chain-service
+  template:
+    metadata:
+      labels:
+        component: bcc-chain-service
+    spec:
+      serviceAccountName: bcc-agent
+      containers:
+        - name: bcc-chain-service
+          image: bcc/chain-service
+          ports:
+            - containerPort: 5001

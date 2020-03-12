@@ -6,32 +6,53 @@ build:
   local:
     push: false
   artifacts:
-    - image: bcc/api-server
-      context: ../bcc-api-server
+    - image: bcc/api-gate
+      context: ../bcc-api-gate
       docker:
         dockerfile: Dockerfile.dev
       sync:
         infer:
           - '**/*.js'
-    - image: bcc/job-worker
-      context: ../bcc-job-worker
+    - image: bcc/db-gate
+      context: ../bcc-db-gate
       docker:
         dockerfile: Dockerfile.dev
       sync:
         infer:
           - '**/*.js'
-    # - image: bcc/web-client
-    #   context: ./bcc-web-client
-    #   docker:
-    #     dockerfile: Dockerfile.dev
-    #   sync:
-    #     infer:
-    #       - '**/*.js'
+    - image: bcc/transaction-gate
+      context: ../bcc-transaction-gate
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        infer:
+          - '**/*.js'
+    - image: bcc/agent
+      context: ../bcc-agent
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        infer:
+          - '**/*.js'
+    - image: bcc/web-ui
+      context: ../bcc-web-ui
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        infer:
+          - '**/*.js'
 deploy:
   kubectl:
     manifests:
-      - ./bcc-api-server-cluster-ip.yaml
-      - ./bcc-api-server-deployment.yaml
+      - ./bcc-web-ui-cluster-ip.yaml
+      - ./bcc-web-ui-deployment.yaml
+      - ./bcc-db-gate-cluster-ip.yaml
+      - ./bcc-db-gate-deployment.yaml
+      - ./bcc-api-gate-cluster-ip.yaml
+      - ./bcc-api-gate-deployment.yaml
+      - ./bcc-transaction-gate-cluster-ip.yaml
+      - ./bcc-transaction-gate-deployment.yaml
+      - ./bcc-agent-deployment.yaml
       - ./ingress.yaml
 
 

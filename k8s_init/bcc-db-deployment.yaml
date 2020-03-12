@@ -12,10 +12,10 @@ spec:
       labels:
         component: bcc-db
     spec:
-      volumes:
-        - name: bcc-db-storage
-          persistentVolumeClaim:
-            claimName: bcc-db-storage
+      # volumes:
+      #   - name: bcc-db-storage
+      #     persistentVolumeClaim:
+      #       claimName: bcc-db-storage
       containers:
         - name: mongo
           image: mongo
@@ -32,9 +32,9 @@ spec:
                   key: password
           ports:
             - containerPort: 27017
-          volumeMounts: 
-            - mountPath: "/data/db"
-              name: bcc-db-storage
+          # volumeMounts: 
+          #   - mountPath: "/data/db"
+          #     name: bcc-db-storage
 
 
   

@@ -15,10 +15,10 @@ spec:
               servicePort: 27017
           - path: /api/?(.*)
             backend:
-              serviceName: bcc-api-server
+              serviceName: bcc-api-gate
               servicePort: 5000
           - path: /?(.*)
             backend:  
-              serviceName: web-client
+              serviceName: bcc-web-ui
               servicePort: 3000
           

@@ -12,7 +12,7 @@ deploy:
       - ./bcc-agent-cluster-role-binding.yaml
       - ./bcc-db-cluster-ip.yaml
       - ./bcc-db-secret.yaml
-      - ./bcc-db-pvc.yaml
+      # - ./bcc-db-pvc.yaml
       - ./bcc-db-deployment.yaml
       - ./bcc-cache-cluster-ip.yaml
       - ./bcc-cache-deployment.yaml

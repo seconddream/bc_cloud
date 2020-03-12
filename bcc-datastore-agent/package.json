@@ -1,0 +1,17 @@
+{
+  "name": "bcc-datastore-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "moment": "^2.24.0",
+    "redis": "^2.8.0",
+    "web3": "^1.2.2"
+  }
+}

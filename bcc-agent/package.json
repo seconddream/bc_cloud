@@ -1,0 +1,29 @@
+{
+  "name": "bcc-job-worker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "dev": "nodemon ./src/index.js",
+    "debug": "nodemon --inspect ./src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@kubernetes/client-node": "^0.10.2",
+    "ansi-colors": "^4.1.1",
+    "axios": "^0.19.1",
+    "bluebird": "^3.5.5",
+    "fs-extra": "^8.1.0",
+    "moment": "^2.24.0",
+    "mongodb": "^3.3.3",
+    "nodemon": "^1.19.2",
+    "redis": "^2.8.0",
+    "solc": "^0.5.13",
+    "uid-generator": "^2.0.0",
+    "uuid": "^3.3.3",
+    "validate": "^5.0.0",
+    "web3": "^1.2.4"
+  }
+}
