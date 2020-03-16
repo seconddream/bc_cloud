@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Icon, Typography } from 'antd'
+import { RocketOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
 import { blue } from '@ant-design/colors';
 
 const { Title } = Typography
@@ -18,10 +19,7 @@ export default class Logo extends Component {
             justifyContent: 'center'
           }}
         >
-          <Icon
-            type="rocket"
-            style={{ fontSize: '50px', color: dark ? blue.primary : 'white' }}
-          />
+          <RocketOutlined style={{ fontSize: '50px', color: dark ? blue.primary : 'white' }} />
         </div>
         <div
           style={{
@@ -41,6 +39,6 @@ export default class Logo extends Component {
           ) : null}
         </div>
       </div>
-    )
+    );
   }
 }

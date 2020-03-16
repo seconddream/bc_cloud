@@ -7,23 +7,42 @@ const { mongoClient, redisClient } = require('../connection')
 const datastoreCollection = mongoClient.db('bcc-data').collection('datastore')
 const DatastoreNotFound = new Error('Datastore not found.')
 
+// create datastore doc in db
+// datastore doc stores meta data of a datastore, its schema (columns),
+// underlying deployed contract and state of the datastore agent monitering
 const writeDatastore = async (name, type, userId, chainId) => {
   const { insertedId } = await datastoreCollection.insertOne({
     name,
     type,
-    createdOn: moment().valueOf(),
+    createdOn: moment().unix(),
     userId,
     chainId,
+    // id of the deployed contract, used for sending transactions
     contract: null,
+    // datastore agent monitoring state, once its set by datastore agent
+    // datastore agent will continusly sync the cached data
     monitoring: false,
-    keys: [],
-    keyDataTypes: [],
-    revokedDataIndex: [],
-    dataCount: 0
+    // column schema
+    columns: {
+      // columnName: { columnIndex, columnName, columnDataType}
+    },
+    // current data row count (include revoked)
+    currentRowIndex: 0
   })
   return { datastoreId: insertedId.toHexString() }
 }
 
+// util function to get a row index and increase the count automaticly
+const getRowIndex = async datastoreId => {
+  const { value } = await datastoreCollection.findOneAndUpdate(
+    { _id: new ObjectID(datastoreId) },
+    { $inc: { currentRowIndex: 1 } }
+  )
+  if (value === null) throw DatastoreNotFound
+  return value.currentRowIndex
+}
+
+// read datastore doc
 const readDatastore = async datastoreId => {
   const doc = await datastoreCollection
     .find({ _id: new ObjectID(datastoreId) })
@@ -35,13 +54,14 @@ const readDatastore = async datastoreId => {
   return datastore
 }
 
+// read datastore docs by a list of ids
 const readDatastoreList = async datastores => {
   const datastoreDocs = await datastoreCollection
     .find({
       _id: { $in: datastores.map(datastoreId => new ObjectID(datastoreId)) }
     })
     .toArray()
-  const datastoreList =  datastoreDocs.map(datastore => {
+  const datastoreList = datastoreDocs.map(datastore => {
     datastore.datastoreId = datastore._id.toHexString()
     delete datastore._id
     return datastore
@@ -49,12 +69,20 @@ const readDatastoreList = async datastores => {
   return datastoreList
 }
 
+// util function to delete a collection named by a datastore id, namely the data 
+// row docs of a datastore
 const deleteDataCollection = async datastoreId => {
-  const resp = await mongoClient.db('bcc-data').dropCollection(datastoreId)
-  console.log(resp)
+  try {
+    await mongoClient.db('bcc-data').dropCollection(datastoreId)
+  } catch (error) {
+    console.log(error.message)
+    if(error.message !== "ns not found"){
+      throw error
+    }
+  }
 }
 
-
+// delete the datastore doc
 const deleteDatastore = async datastoreId => {
   const { value } = await datastoreCollection.findOneAndDelete({
     _id: new ObjectID(datastoreId)
@@ -63,6 +91,8 @@ const deleteDatastore = async datastoreId => {
   await deleteDataCollection(datastoreId)
 }
 
+// update the contract id of a datastore, used during datastore deploy
+// after a datastore contract is deployed to a chain instance
 const updateDatastoreContract = async (datastoreId, contractId) => {
   const { value } = await datastoreCollection.findOneAndUpdate(
     { _id: new ObjectID(datastoreId) },
@@ -71,10 +101,14 @@ const updateDatastoreContract = async (datastoreId, contractId) => {
   if (value === null) throw DatastoreNotFound
 }
 
+// inform the monitoring redis queue, datastore agent monitoring this queue
+// and will start monitoring a datastore contract event once it shows in queue
 const publishDatastore = async (datastoreId, namespace) => {
   redisClient.publish(`CreateDatastore:${namespace}`, datastoreId)
 }
 
+// set the datastore agent monitoring state of a datastore, only when
+// datastore agent starts monitoring, the deployment of a datastore can continue
 const setMonitoring = async datastoreId => {
   // console.log('in dao: ' + datastoreId)
   const { value } = await datastoreCollection.findOneAndUpdate(
@@ -84,256 +118,164 @@ const setMonitoring = async datastoreId => {
   if (value === null) throw DatastoreNotFound
 }
 
-const setSchema = async (datastoreId, schema) => {
-  const keys = []
-  const keyDataTypes = []
-
-  for (const keyId of Object.keys(schema).sort((a, b) => a - b)) {
-    keys.push(schema[keyId].keyName)
-    keyDataTypes.push(schema[keyId].dataType)
-  }
-  const { value } = await datastoreCollection.findOneAndUpdate(
-    { _id: new ObjectID(datastoreId) },
-    { $set: { keys, keyDataTypes } }
-  )
-  if (value === null) throw DatastoreNotFound
-}
-
-const cacheRevokeDataEntry = async (
+// call by datastore agent only to update the column
+const appendColumn = async (
   datastoreId,
-  dataIndex,
-  t_cached,
-  caller
+  columnIndex,
+  columnName,
+  columnDataType
 ) => {
-  const { revokedDataIndex } = await readDatastore(datastoreId)
-  if (revokedDataIndex.filter(r => dataIndex === dataIndex).length > 0)
-    throw new Error('DataIndex already revoked.')
-  const { value } = await datastoreCollection.findOneAndUpdate(
-    { _id: new ObjectID(datastoreId) },
-    { $push: { revokedDataIndex: { dataIndex, t_cached, caller } } }
-  )
-  if (value === null) throw DatastoreNotFound
-  console.log(c.gray('cache revoke data entry, indexes after: '))
-  console.log(c.gray(JSON.stringify(value.revokedDataIndex)))
-}
-
-const comfirmRevokeDataEntry = async (
-  datastoreId,
-  dataIndex,
-  t_cached,
-  t_mined,
-  transactionHash
-) => {
-  const { revokedDataIndex } = await readDatastore(datastoreId)
-  console.log(c.gray('comfirm revoke data entry, indexes before: '))
-  console.log(c.gray(JSON.stringify(revokedDataIndex)))
-  const recordList = revokedDataIndex.filter(
-    r => r.dataIndex === dataIndex && r.t_cached === t_cached
-  )
-  if (recordList.length === 0) throw new Error('No revoke record found.')
-  const record = { ...recordList[0], t_mined, transactionHash }
   const { value } = await datastoreCollection.findOneAndUpdate(
     { _id: new ObjectID(datastoreId) },
     {
-      $pull: { revokedDataIndex: { dataIndex, t_cached } },
-      $push: { revokedDataIndex: record }
-    },
-    { returnOriginal: false }
-  )
-
-  console.log(c.gray('comfirm revoke data entry, indexes after: '))
-  console.log(c.gray(JSON.stringify(value.revokedDataIndex)))
-}
-
-// data store data -----------------------------------------------------------
-
-const parseDataValue = (value, type) => {
-  switch (type) {
-    case 'string':
-      return value
-    case 'integer':
-      return parseInt(value)
-    case 'float':
-      return parseFloat(value)
-    case 'bool':
-      return value === 'true' ? true : false
-    default:
-      return value
-  }
-}
-
-const parseDataDocs = async (datastoreId, dataDocs) => {
-  const { keys, keyDataTypes } = await readDatastore(datastoreId)
-  const data = {}
-  for (const dataDoc of dataDocs) {
-    const { dataIndex, keyIndex } = dataDoc
-    if (!data[dataIndex]) data[dataIndex] = {}
-    data[dataIndex][keys[keyIndex]] = { ...dataDoc }
-    data[dataIndex][keys[keyIndex]].value = parseDataValue(
-      data[dataIndex][keys[keyIndex]].value,
-      keyDataTypes[keyIndex]
-    )
-  }
-  return data
-}
-
-const getNextDataIndex = async datastoreId => {
-  const { value } = await datastoreCollection.findOneAndUpdate(
-    { _id: new ObjectID(datastoreId) },
-    { $inc: { dataCount: 1 } }
+      $set: {
+        [`columns.${columnName}`]: {
+          columnIndex,
+          columnName,
+          columnDataType
+        }
+      }
+    }
   )
   if (value === null) throw DatastoreNotFound
-  return { dataIndex: value.dataCount }
 }
 
-const createDataEntry = async (datastoreId, dataIndex, keyCount) => {
-  // locate the collection
+// data store data row ---------------------------------------------------------
+
+// cache a data row 
+const createDataRow = async (datastoreId) => {
+  const datastore = await readDatastore(datastoreId)
+  const rowIndex = await getRowIndex(datastoreId)
+  // locate the datastore data row collection
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
-  // test for dataIndex already used
-  const existDocs = await collection.find({ dataIndex }).toArray()
-  if (existDocs.length > 0) throw new Error(`DataIndex ${dataIndex} exist.`)
-  // insert data doc for each key of the data entry
-  const resp = await collection.insertMany(
-    [...Array(keyCount).keys()].map(keyIndex => {
-      return {
-        dataIndex,
-        keyIndex,
-        value: null,
-        history: []
+  // insert data row as a doc
+  const { insertedId } = await collection.insertOne({
+    rowIndex,
+    revoked: false,
+    columns: {...datastore.columns},
+    revoke: null
+  })
+  return { rowIndex }
+}
+
+// cache a data row revoke 
+const cacheDataRowRevoke = async (datastoreId, rowIndex, actor) => {
+  const collection = await mongoClient.db('bcc-data').collection(datastoreId)
+  const { value } = await collection.findOneAndUpdate(
+    { rowIndex, revoke: null },
+    { $set: { revoke: { actor, t_cached: moment().unix() } } }
+  )
+  if (value === null) throw new Error('No data row found.')
+}
+
+// confirm a data row revoke op, same like confimrCreateDataRow,
+const confirmDataRowRevoked = async (datastoreId, rowIndex, t_bc) => {
+  const collection = await mongoClient.db('bcc-data').collection(datastoreId)
+  const { value } = await collection.findOneAndUpdate(
+    { rowIndex, revoke: null },
+    { $set: { 'revoke.t_bc': parseInt(t_bc) } }
+  )
+  if (value === null) throw new Error('No data row found.')
+}
+
+const cacheDataWrite = async (
+  datastoreId,
+  rowIndex,
+  columnIndex,
+  columnName,
+  columnDataType,
+  dataValue,
+  actor
+) => {
+  const collection = await mongoClient.db('bcc-data').collection(datastoreId)
+  const { value } = await collection.findOneAndUpdate(
+    { rowIndex },
+    {
+      $push: {
+        [`columns.${columnName}.history`]: {
+          value: dataValue,
+          actor,
+          t_cached: moment().unix()
+        }
       }
-    })
+    },
+    {returnOriginal: false}
   )
-  console.log(resp)
+  if (value === null) throw new Error('No data row found.')
+  return { historyIndex: value.columns[columnName].history.length - 1 }
 }
 
-// used by API Gate
-// for all new incoming key value pair of a data entry before mined on the chain
-const cacheKeyValue = async (
+const confirmDataWritten = async (
   datastoreId,
-  dataIndex,
-  keyIndex,
-  value,
-  t_cached,
-  caller
+  rowIndex,
+  columnName,
+  historyIndex,
+  t_bc
 ) => {
-  const { revokedDataIndex } = await readDatastore(datastoreId)
-  if (revokedDataIndex.map(o => o.dataIndex).includes(dataIndex))
-    throw new Error('DataIndex revoked.')
-  // locate the collection
-  const collection = mongoClient.db('bcc-data').collection(datastoreId)
-  // update value of the key, sync to false, because it is not mined yet
-  const resp = await collection.findOneAndUpdate(
-    { dataIndex, keyIndex },
-    { $push: { history: { value, t_cached, caller } } }
+  const collection = await mongoClient.db('bcc-data').collection(datastoreId)
+  const { value } = await collection.findOneAndUpdate(
+    { rowIndex: parseInt(rowIndex) },
+    {
+      $set: {
+        [`columns.${columnName}.history.${historyIndex}.t_bc`]: parseInt(t_bc)
+      }
+    }
   )
-  if (resp.value === null)
-    throw new Error(
-      `DataIndex ${dataIndex} and keyIndex ${keyIndex} does not exist.`
-    )
+  if (value === null) throw new Error('No data row found.')
 }
 
-// used by datastore agent
-// for the comfirm after key value pair is mined
-const comfirmKeyValue = async (
+const readDataRow = async (
   datastoreId,
-  dataIndex,
-  keyIndex,
-  value,
-  t_cached,
-  t_mined,
-  transactionHash
-) => {
-  const { revokedDataIndex } = await readDatastore(datastoreId)
-  if (revokedDataIndex.map(o => o.dataIndex).includes(dataIndex))
-    throw new Error('DataIndex revoked.')
-  // locate the collection
-  const collection = mongoClient.db('bcc-data').collection(datastoreId)
-  // read the doc with dataIndex and keyIndex
-  const dataDocs = await collection.find({ dataIndex, keyIndex }).toArray()
-  if (dataDocs.length === 0)
-    throw new Error(
-      `DataIndex ${dataIndex} and keyIndex ${keyIndex} does not exist.`
-    )
-  console.log(c.gray(`DataDoc[${dataIndex}][${keyIndex}] before comfirm:`))
-  console.log(c.gray(JSON.stringify(dataDocs[0])))
-  // update record
-  const recordList = dataDocs[0].history.filter(r => r.t_cached === t_cached)
-  if (recordList.length === 0) throw new Error('No history record found.')
-  if (recordList.length > 1) throw new Error('Duplicated records found.')
-  const record = { ...recordList[0], value, t_mined, transactionHash }
-  // update doc
-  await collection.findOneAndUpdate(
-    { dataIndex, keyIndex },
-    { $set: { value }, $pull: { history: { t_cached } } }
-  )
-  const resp = await collection.findOneAndUpdate(
-    { dataIndex, keyIndex },
-    { $set: { value }, $push: { history: record } },
-    { returnOriginal: false }
-  )
-  console.log(c.gray(`DataDoc[${dataIndex}][${keyIndex}] after comfirm:`))
-  console.log(c.gray(JSON.stringify(resp.value)))
-}
-
-const readDataEntryByDataIndex = async (
-  datastoreId,
-  dataIndexSkip,
+  rowIndexSkip,
   retrieveCount = 10
 ) => {
   // locate the collection
   const collection = mongoClient.db('bcc-data').collection(datastoreId)
   let docs = []
-  if (dataIndexSkip) {
-    const dataIndexList = []
-    for (let i = dataIndexSkip; i < dataIndexSkip + retrieveCount; i++) {
-      dataIndexList.push(i)
+  let rowIndexList = []
+  if (rowIndexSkip) {
+    for (let i = rowIndexSkip; i < rowIndexSkip + retrieveCount; i++) {
+      rowIndexList.push(i)
     }
-    console.log(
-      c.gray(
-        `Read data entry by data indexes: ${JSON.stringify(dataIndexList)}`
-      )
-    )
-    docs = await collection
-      .find({ dataIndex: { $in: dataIndexList } })
-      .toArray()
   } else {
-    const dataIndexList = [...Array(retrieveCount).keys()]
-    console.log(
-      c.gray(
-        `Read data entry by data indexes: ${JSON.stringify(dataIndexList)}`
-      )
-    )
-    docs = await collection
-      .find({ dataIndex: { $in: dataIndexList } })
-      .toArray()
+    rowIndexList = [...Array(retrieveCount).keys()]
   }
-
-  return parseDataDocs(datastoreId, docs)
+  console.log(
+    c.gray(
+      `Read data row by rowIndex: ${JSON.stringify(rowIndexList)}`
+    )
+  )
+  docs = await collection
+    .find({ rowIndex: { $in: rowIndexList } })
+    .toArray()
+  return docs
 }
 
-const readDataEntryByFilter = async (datastoreId, filter) => {
+const readDataRowWithFilter = async (datastoreId, filter) => {
   const collection = mongoClient.db('bcc-data').collection(datastoreId)
-  const docs = await collection.find({ ...filter }).toArray()
-  return parseDataDocs(datastoreId, docs)
+  const filterObj ={}
+  Object.entries(filter).forEach(([columnName, filterValue])=>{
+    filterObj[`columns.${columnName}.history`] = {value: filterValue}
+  })
+  const docs = await collection.find(filterObj).toArray()
+  return docs
 }
-
 
 module.exports = {
   writeDatastore,
   readDatastore,
   readDatastoreList,
+  deleteDataCollection,
   deleteDatastore,
   updateDatastoreContract,
   publishDatastore,
   setMonitoring,
-  setSchema,
-  cacheRevokeDataEntry,
-  comfirmRevokeDataEntry,
-  getNextDataIndex,
-  createDataEntry,
-  cacheKeyValue,
-  comfirmKeyValue,
-  readDataEntryByDataIndex,
-  readDataEntryByFilter,
-  deleteDataCollection
+  appendColumn,
+  createDataRow,
+  cacheDataRowRevoke,
+  confirmDataRowRevoked,
+  cacheDataWrite,
+  confirmDataWritten,
+  readDataRow,
+  readDataRowWithFilter,
 }

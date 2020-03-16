@@ -1,14 +1,6 @@
 import React from 'react'
-import {
-  Descriptions,
-  Row,
-  Col,
-  Icon,
-  Statistic,
-  Typography,
-  Button,
-  Divider
-} from 'antd'
+import { CloudServerOutlined, DatabaseOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Descriptions, Row, Col, Statistic, Typography, Button, Divider } from 'antd';
 import moment from 'moment'
 
 export default function ChainOverViewPanel(props) {
@@ -32,28 +24,28 @@ export default function ChainOverViewPanel(props) {
           <Statistic
             title="Deployment"
             value={chain.deployment ? 1 : 0}
-            prefix={<Icon type="cloud-server" />}
+            prefix={<CloudServerOutlined />}
           />
         </Col>
         <Col span={4}>
           <Statistic
             title="Service"
             value={chain.services.length}
-            prefix={<Icon type="cloud-server" />}
+            prefix={<CloudServerOutlined />}
           />
         </Col>
         <Col span={4}>
           <Statistic
             title="DataStore"
             value={chain.dataStores.length}
-            prefix={<Icon type="database" />}
+            prefix={<DatabaseOutlined />}
           />
         </Col>
         <Col span={4}>
           <Statistic
             title="Contract"
             value={chain.contracts.length}
-            prefix={<Icon type="file-text" />}
+            prefix={<FileTextOutlined />}
           />
         </Col>
       </Row>
@@ -76,5 +68,5 @@ export default function ChainOverViewPanel(props) {
         </Descriptions.Item>
       </Descriptions>
     </React.Fragment>
-  )
+  );
 }

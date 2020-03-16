@@ -101,9 +101,10 @@ const deployContract = async (
     .encodeABI()
 
   // sign transaction with chain master account
+  const {nonce} =await callDBGate(`/chain/getMasterAccountNonce`, {chainId})
   const signedTx = await web3.eth.accounts.signTransaction(
     {
-      nonce: await web3.eth.getTransactionCount(account),
+      nonce,
       data: '0x' + tx,
       from: account,
       to: null,
@@ -115,6 +116,7 @@ const deployContract = async (
 
   // send transaction to chain
   const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+
   return receipt
 }
 
@@ -173,9 +175,10 @@ const callContractMethod = async (
       tx = contractInstance.methods[methodName]().encodeABI()
     }
     // sign with master account
+  const {nonce} =await callDBGate(`/chain/getMasterAccountNonce`, {chainId})
     const signedTx = await web3.eth.accounts.signTransaction(
       {
-        nonce: await web3.eth.getTransactionCount(account),
+        nonce,
         from: account,
         data: tx,
         to: receipt.contractAddress,

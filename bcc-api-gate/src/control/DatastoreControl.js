@@ -1,6 +1,7 @@
 const { callDBGate } = require('../connection')
 
 module.exports = {
+  
   getDatastore: async datastoreId => {
     const datastore = await callDBGate('/datastore/readDatastore', {
       datastoreId
@@ -25,6 +26,10 @@ module.exports = {
   },
 
   deleteChainDatastore: async (userId, chainId, datastoreId) => {
+    const datastore = await callDBGate('/datastore/readDatastore', {
+      datastoreId
+    })
+
     await callDBGate('/datastore/deleteDatastore', {
       datastoreId
     })
@@ -34,12 +39,9 @@ module.exports = {
     await callDBGate('/user/removeDatastore', {
       userId, datastoreId
     })
+    await callDBGate('/contract/deleteContract', {
+      contractId: datastore.contract
+    })
   },
 
-  setChainDatastoreSchema: async (datastoreId, schema) => {
-    await callDBGate('/datastore/setSchema', {
-      datastoreId,
-      schema
-    })
-  }
 }

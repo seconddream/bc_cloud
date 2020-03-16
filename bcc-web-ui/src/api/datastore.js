@@ -5,9 +5,8 @@ export const deployDatastoreToUserChain = async (
   chainId,
   name,
   type,
-  schema
+  columns
 ) => {
-  console.log(schema)
   return await APIGate.post(
     `/user/${userId}/chain/${chainId}/deployment/datastore`,
     {
@@ -15,7 +14,7 @@ export const deployDatastoreToUserChain = async (
       chainId,
       name,
       type,
-      schema
+      columns
     }
   )
 }
@@ -78,11 +77,19 @@ export const createDatastoreDataEntries = async (datastoreId, dataEntries) => {
 
 export const getDatastoreData = async (
   datastoreId,
-  dataIndexSkip = 0,
+  rowIndexSkip = 0,
   retrieveCount = 10,
   filters = null
 ) => {
-  return await APIGate.post(`/datastore/${datastoreId}/readData`, {
-    dataIndexSkip, retrieveCount, filters
+  return await APIGate.post(`/datastore/${datastoreId}/read`, {
+    rowIndexSkip, retrieveCount, filters
+  })
+}
+
+export const writeDataStoreDataRow = async (
+  datastoreId, contractId, row
+)=>{
+  return await APIGate.post(`/datastore/${datastoreId}/row`, {
+    contractId, row
   })
 }

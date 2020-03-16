@@ -31,37 +31,52 @@ const init = async () => {
 
     console.log('register callback for Datastore')
 
-    datastoreContract.events.WriteData().on('data', async event => {
+    // event handler for data written
+    datastoreContract.events.ColumnCreated().on('data', async event => {
       const {
         datastoreId,
-        dataIndex,
-        keyIndex,
-        value,
-        t_cached,
-        t_mined
+        columnIndex,
+        columnName,
+        columnDataType
       } = event.returnValues
-      await callDBGate('/datastore/comfirmKeyValue', {
+      await callDBGate('/datastore/appendColumn', {
         datastoreId,
-        dataIndex,
-        keyIndex,
-        value,
-        t_cached,
-        t_mined,
-        transactionHash: event.transactionHash
+        columnIndex: parseInt(columnIndex),
+        columnName,
+        columnDataType
       })
-      console.log(`Data written: `, event)
+      console.log(event)
     })
 
-    datastoreContract.events.DeleteData().on('data', async event => {
-      const { datastoreId, dataIndex, t_cached, t_mined } = event.returnValues
-      await callDBGate('/datastore/comfirmRevokeDataEntry', {
+    // event handler for data written
+    datastoreContract.events.DataWritten().on('data', async event => {
+      const {
         datastoreId,
-        dataIndex,
-        t_cached,
-        t_mined,
-        transactionHash: event.transactionHash
+        rowIndex,
+        columnIndex,
+        columnName,
+        columnDataType,
+        historyIndex,
+        t_bc
+      } = event.returnValues
+      await callDBGate('/datastore/confirmDataWritten', {
+        datastoreId,
+        rowIndex,
+        columnName,
+        historyIndex,
+        t_bc
       })
-      console.log(`Data deleted: `, event)
+      console.log(event)
+    })
+
+    datastoreContract.events.DataRowRevoked().on('data', async event => {
+      const { datastoreId, rowIndex, t_bc } = event.returnValues
+      await callDBGate('/datastore/confirmDataRowRevoked', {
+        datastoreId,
+        rowIndex,
+        t_bc
+      })
+      console.log(event)
     })
 
     await callDBGate('/datastore/setMonitoring', { datastoreId })

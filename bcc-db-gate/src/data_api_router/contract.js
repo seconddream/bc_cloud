@@ -50,7 +50,7 @@ router.post('/deleteContract', async (req, res, next) => {
     const { contractId } = req.body
     if (!contractId) throw new Error('Parameter reqired: contractId.')
     await ContractDAO.deleteContract(contractId)
-    res.send(200)
+    res.sendStatus(200)
   } catch (error) {
     next(error)
   }

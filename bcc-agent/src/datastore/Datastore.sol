@@ -3,167 +3,133 @@ pragma solidity >=0.6.0;
 contract Datastore {
     // datastore infomation
     string public _datastoreId;
-    uint256 public _currentRowIndex;
+    uint256 public nextRowIndex;
 
     constructor(string memory datastoreId) public {
         _datastoreId = datastoreId;
-        _currentRowIndex = 0;
+        nextRowIndex = 0;
     }
 
-    // datastore schema --------------------------------------------------------
-    string[] _colDataType;
-    string[] _colName;
+    // datastore column schema -------------------------------------------------
+    string[] columnNameArray;
+    string[] columnDataTypeArray;
 
-    event SchemaChange(
+    // event to indicate change of schema in this datastore contract
+    event ColumnCreated(
         string datastoreId,
-        string operation,
-        uint256 colIndex,
-        string colDataType,
-        string colName
+        uint256 columnIndex,
+        string columnName,
+        string columnDataType
     );
 
-    function newCol(string memory colDataType, string memory colName) public {
-        _colDataType.push(colDataType);
-        _colName.push(colName);
-        emit SchemaChange(
-            _datastoreId,
-            "newCol",
-            _colDataType.length - 1,
-            colDataType,
-            colName
-        );
-    }
-
-    function updateColDataType(
-        uint256 colIndex,
-        string memory colDataType,
-        string memory colName
+    // append new columnum to the schema
+    function createColumn(
+        string memory columnName,
+        string memory columnDataType
     ) public {
-        if (colIndex < _currentRowIndex) {
-            _colDataType[colIndex] = colDataType;
-            _colName[colIndex] = colName;
-        }
-        emit SchemaChange(
+        columnNameArray.push(columnName);
+        columnDataTypeArray.push(columnDataType);
+        emit ColumnCreated(
             _datastoreId,
-            "updateColDataType",
-            colIndex,
-            colDataType,
-            colName
+            columnNameArray.length - 1,
+            columnName,
+            columnDataType
         );
     }
 
-    function getColLength() public view returns (uint256 len) {
-        len = _colDataType.length;
+    // get the current columnum count
+    function getColumnCount() public view returns (uint256 count) {
+        count = columnNameArray.length;
     }
 
-    function getCol(uint256 colIndex)
+    // get the columnum name and datatype by columnum index
+    function getColumn(uint256 columnIndex)
         public
         view
-        returns (string memory colName, string memory colDataType)
+        returns (string memory columnName, string memory columnDataType)
     {
-        colName = _colName[colIndex];
-        colDataType = _colDataType[colIndex];
+        columnName = columnNameArray[columnIndex];
+        columnDataType = columnDataTypeArray[columnIndex];
     }
 
-    // datastore data
+    // datastore data ----------------------------------------------------------
 
+    // struck to store a row of data
     struct DataRow {
-        bool _init;
-        bool _revoked;
-        mapping(uint256 => string) _colToValueMapping;
+        bool revoked; // data row revoked
+        mapping(uint256 => string) columnToValueMapping; // value columnums
+        mapping(uint256 => bool) columnHasValueMapping;
     }
 
-    mapping(uint256 => DataRow) private _data;
+    // data row mapping
+    mapping(uint256 => DataRow) private data;
 
-    event DataChange(
+    event DataRowRevoked(string datastoreId, uint256 rowIndex, uint256 t_bc);
+
+    // revoke a row of data
+    function revokeDataRow(uint256 rowIndex) public {
+        data[rowIndex].revoked = true;
+        emit DataRowRevoked(_datastoreId, rowIndex, now);
+    }
+
+    event DataWritten(
         string datastoreId,
-        string operation,
         uint256 rowIndex,
-        uint256 colIndex,
-        string value,
-        uint256 blocktime
+        uint256 columnIndex,
+        string columnName,
+        string columnDataType,
+        uint256 historyIndex,
+        uint256 t_bc
     );
 
-    // get next free row index for adding new data row
-    function getNewRow() public returns (uint256 rowIndex) {
-        rowIndex = _currentRowIndex;
-        _data[rowIndex] = DataRow(true, false);
-        _currentRowIndex++;
-    }
-
-    function newData(uint256 rowIndex, uint256 colIndex, string memory value)
-        public
-    {
-        if (_data[rowIndex]._init != false) {
-            _data[rowIndex]._colToValueMapping[colIndex] = value;
-            emit DataChange(
+    // update a value in data row
+    function writeData(
+        uint256 rowIndex,
+        uint256 columnIndex,
+        string memory value,
+        uint256 historyIndex
+    ) public {
+        if (data[rowIndex].revoked != true) {
+            data[rowIndex].columnToValueMapping[columnIndex] = value;
+            data[rowIndex].columnHasValueMapping[columnIndex] = true;
+            emit DataWritten(
                 _datastoreId,
-                "newData",
                 rowIndex,
-                colIndex,
-                value,
+                columnIndex,
+                columnNameArray[columnIndex],
+                columnDataTypeArray[columnIndex],
+                historyIndex,
                 now
             );
         }
     }
 
-    function updateData(uint256 rowIndex, uint256 colIndex, string memory value)
-        public
-    {
-        if (
-            _data[rowIndex]._init != false && _data[rowIndex]._revoked != true
-        ) {
-            _data[rowIndex]._colToValueMapping[colIndex] = value;
-            emit DataChange(
-                _datastoreId,
-                "updateData",
-                rowIndex,
-                colIndex,
-                value,
-                now
-            );
-        }
-    }
-
-    function revokeDataRow(uint256 rowIndex) public {
-        if (_data[rowIndex]._init != false) {
-            _data[rowIndex]._revoked = true;
-            emit DataChange(_datastoreId, "revokeDataRow", 0, 0, "", now);
-        }
-    }
-
-    function readData(uint256 rowIndex, uint256 colIndex)
+    // read data from a row with columnum index
+    function readData(uint256 rowIndex, uint256 columnIndex)
         public
         view
         returns (
-            string memory colName,
+            string memory columnName,
             string memory dataType,
             string memory value,
             bool exist,
             bool revoked
         )
     {
-        if (_data[rowIndex]._init != true) {
-            colName = "n/a";
-            dataType = "n/a";
-            value = "n/a";
+        if (data[rowIndex].revoked == true) {
+            columnName = "";
+            dataType = "";
+            value = "";
             exist = false;
-            revoked = false;
+            revoked = true;
         } else {
-            if (_data[rowIndex]._revoked == true) {
-                colName = "n/a";
-                dataType = "n/a";
-                value = "n/a";
-                exist = true;
-                revoked = true;
-            } else {
-                colName = _colName[colIndex];
-                dataType = _colDataType[colIndex];
-                value = _data[rowIndex]._colToValueMapping[colIndex];
-                exist = true;
-                revoked = false;
-            }
+            columnName = columnNameArray[columnIndex];
+            dataType = columnDataTypeArray[columnIndex];
+            value = data[rowIndex].columnToValueMapping[columnIndex];
+            exist = data[rowIndex].columnHasValueMapping[columnIndex];
+            revoked = false;
         }
+
     }
 
 }

@@ -1,5 +1,8 @@
 import React from 'react'
-import { Form, Input, Icon, Button, Checkbox, message } from 'antd'
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Form } from '@ant-design/compatible';
+import '@ant-design/compatible/assets/index.css';
+import { Input, Button, Checkbox, message } from 'antd';
 
 function LoginForm(props) {
 
@@ -29,7 +32,7 @@ function LoginForm(props) {
             rules: [{ required: true, message: 'Please input your E-mail!' }]
           })(
             <Input
-              prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               placeholder="Username"
             />
           )}
@@ -39,7 +42,7 @@ function LoginForm(props) {
             rules: [{ required: true, message: 'Please input your Password!' }]
           })(
             <Input
-              prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               type="password"
               placeholder="Password"
             />
@@ -59,7 +62,7 @@ function LoginForm(props) {
         </Form.Item>
       </Form>
     </div>
-  )
+  );
 }
 
 

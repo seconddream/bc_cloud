@@ -83,30 +83,18 @@ router.post('/setMonitoring', async (req, res, next) => {
   }
 })
 
-router.post('/setSchema', async (req, res, next) => {
+router.post('/appendColumn', async (req, res, next) => {
   try {
-    const { datastoreId, schema } = req.body
+    const { datastoreId, columnIndex, columnName, columnDataType } = req.body
     if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!schema) throw new Error('Parameter reqired: schema.')
-    await DataStoreDAO.setSchema(datastoreId, schema)
-    res.sendStatus(200)
-  } catch (error) {
-    next(error)
-  }
-})
-
-router.post('/cacheRevokeDataEntry', async (req, res, next) => {
-  try {
-    const { datastoreId, dataIndex, t_cached, caller } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!dataIndex) throw new Error('Parameter reqired: dataIndex.')
-    if (!t_cached) throw new Error('Parameter reqired: t_cached.')
-    if (!caller) throw new Error('Parameter reqired: caller.')
-    await DataStoreDAO.cacheRevokeDataEntry(
+    if (columnIndex === null || columnIndex === undefined) throw new Error('Parameter reqired: columnIndex.')
+    if (!columnName) throw new Error('Parameter reqired: columnName.')
+    if (!columnDataType) throw new Error('Parameter reqired: columnDataType.')
+    await DataStoreDAO.appendColumn(
       datastoreId,
-      dataIndex,
-      t_cached,
-      caller
+      columnIndex,
+      columnName,
+      columnDataType
     )
     res.sendStatus(200)
   } catch (error) {
@@ -114,136 +102,124 @@ router.post('/cacheRevokeDataEntry', async (req, res, next) => {
   }
 })
 
-router.post('/comfirmRevokeDataEntry', async (req, res, next) => {
+router.post('/createDataRow', async (req, res, next) => {
+  try {
+    const { datastoreId, actor } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    res.send(await DataStoreDAO.createDataRow(datastoreId, actor))
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/cacheDataRowRevoke', async (req, res, next) => {
+  try {
+    const { datastoreId, rowIndex, actor } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    if (rowIndex === null || rowIndex === undefined) throw new Error('Parameter reqired: rowIndex.')
+    // if (!actor) throw new Error('Parameter reqired: actor.')
+    await DataStoreDAO.cacheDataRowRevoke(datastoreId, rowIndex, actor)
+    res.sendStatus(200)
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/confirmDataRowRevoked', async (req, res, next) => {
+  try {
+    const { datastoreId, rowIndex, t_bc } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    if (!t_bc) throw new Error('Parameter reqired: t_bc.')
+    await DataStoreDAO.confirmDataRowRevoked(datastoreId, rowIndex, t_bc)
+    res.sendStatus(200)
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/cacheDataWrite', async (req, res, next) => {
   try {
     const {
       datastoreId,
-      dataIndex,
-      t_cached,
-      t_mined,
-      transactionHash
+      rowIndex,
+      columnIndex,
+      columnName,
+      columnDataType,
+      dataValue,
+      actor
     } = req.body
     if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!dataIndex) throw new Error('Parameter reqired: dataIndex.')
-    if (!t_cached) throw new Error('Parameter reqired: t_cached.')
-    if (!t_mined) throw new Error('Parameter reqired: t_mined.')
-    if (!transactionHash) throw new Error('Parameter reqired: transactionHash.')
-    await DataStoreDAO.comfirmRevokeDataEntry(
+    if (rowIndex === null || rowIndex === undefined) throw new Error('Parameter reqired: rowIndex.')
+    if (columnIndex === null || columnIndex === undefined) throw new Error('Parameter reqired: columnIndex.')
+    if (!columnName) throw new Error('Parameter reqired: columnName.')
+    if (!columnDataType) throw new Error('Parameter reqired: columnDataType.')
+    if (dataValue === null || dataValue === undefined) throw new Error('Parameter reqired: dataValue.')
+    // if (!actor) throw new Error('Parameter reqired: actor.')
+
+    res.send(
+      await DataStoreDAO.cacheDataWrite(
+        datastoreId,
+        rowIndex,
+        columnIndex,
+        columnName,
+        columnDataType,
+        dataValue,
+        actor
+      )
+    )
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/confirmDataWritten', async (req, res, next) => {
+  try {
+    const { datastoreId, rowIndex, columnName, historyIndex, t_bc } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    if (rowIndex === null || rowIndex === undefined) throw new Error('Parameter reqired: rowIndex.')
+    if (!columnName) throw new Error('Parameter reqired: columnName.')
+    if (historyIndex === null || historyIndex === undefined) throw new Error('Parameter reqired: historyIndex.')
+    if (!t_bc) throw new Error('Parameter reqired: t_bc.')
+    await DataStoreDAO.confirmDataWritten(
       datastoreId,
-      dataIndex,
-      t_cached,
-      t_mined,
-      transactionHash
+      rowIndex,
+      columnName,
+      historyIndex,
+      t_bc
     )
     res.sendStatus(200)
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/readDataRow', async (req, res, next) => {
+  try {
+    const { datastoreId, rowIndexSkip, retrieveCount } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    if (rowIndexSkip === null || rowIndexSkip === undefined)
+      throw new Error('Parameter reqired: rowIndexSkip.')
+    if (retrieveCount === null || retrieveCount === undefined)
+      throw new Error('Parameter reqired: retrieveCount.')
+    res.send(
+      await DataStoreDAO.readDataRow(datastoreId, rowIndexSkip, retrieveCount)
+    )
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/readDataRowWithFilter', async (req, res, next) => {
+  try {
+    const { datastoreId, filter } = req.body
+    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
+    if (!filter) throw new Error('Parameter reqired: filter.')
+    res.send(await DataStoreDAO.readDataRowWithFilter(datastoreId, filter))
   } catch (error) {
     next(error)
   }
 })
 
 // datastore data router -------------------------------------------------------
-
-
-router.post('/createDataEntry', async (req, res, next) => {
-  try {
-    const { datastoreId, keyCount } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!keyCount) throw new Error('Parameter reqired: keyCount.')
-    const dataIndex = await DataStoreDAO.getNextDataIndex(datastoreId)
-    await DataStoreDAO.createDataEntry(datastoreId, dataIndex, keyCount)
-    res.sendStatus({dataIndex})
-  } catch (error) {
-    next(error)
-  }
-})
-
-router.post('/cacheKeyValue', async (req, res, next) => {
-  try {
-    const {
-      datastoreId,
-      dataIndex,
-      keyIndex,
-      value,
-      t_cached,
-      caller
-    } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!dataIndex) throw new Error('Parameter reqired: dataIndex.')
-    if (!keyIndex) throw new Error('Parameter reqired: keyIndex.')
-    if (!value) throw new Error('Parameter reqired: value.')
-    if (!t_cached) throw new Error('Parameter reqired: t_cached.')
-    if (!caller) throw new Error('Parameter reqired: caller.')
-    await DataStoreDAO.cacheKeyValue(
-      datastoreId,
-      dataIndex,
-      keyIndex,
-      value,
-      t_cached,
-      caller
-    )
-    res.sendStatus(200)
-  } catch (error) {
-    next(error)
-  }
-})
-
-router.post('/comfirmKeyValue', async (req, res, next) => {
-  try {
-    const {
-      datastoreId,
-      dataIndex,
-      keyIndex,
-      value,
-      t_cached,
-      t_mined,
-      transactionHash
-    } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    if (!dataIndex) throw new Error('Parameter reqired: dataIndex.')
-    if (!keyIndex) throw new Error('Parameter reqired: keyIndex.')
-    if (!value) throw new Error('Parameter reqired: value.')
-    if (!t_cached) throw new Error('Parameter reqired: t_cached.')
-    if (!t_mined) throw new Error('Parameter reqired: t_mined.')
-    if (!transactionHash) throw new Error('Parameter reqired: transactionHash.')
-    await DataStoreDAO.comfirmKeyValue(
-      datastoreId,
-      dataIndex,
-      keyIndex,
-      value,
-      t_cached,
-      t_mined,
-      transactionHash
-    )
-    res.sendStatus(200)
-  } catch (error) {
-    next(error)
-  }
-})
-
-router.post('/readDataEntryByDataIndex', async (req, res, next) => {
-  try {
-    const { datastoreId, dataIndexSkip, retrieveCount } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    const data = await DataStoreDAO.readDataEntryByDataIndex(
-      datastoreId,
-      dataIndexSkip,
-      retrieveCount
-    )
-    res.send(data)
-  } catch (error) {
-    next(error)
-  }
-})
-
-router.post('/readDataEntryWithFilter', async (req, res, next) => {
-  try {
-    const { datastoreId, filters } = req.body
-    if (!datastoreId) throw new Error('Parameter reqired: datastoreId.')
-    const data = await DataStoreDAO.readDataEntryByFilter(datastoreId, filters)
-    res.send(data)
-  } catch (error) {
-    next(error)
-  }
-})
 
 module.exports = router

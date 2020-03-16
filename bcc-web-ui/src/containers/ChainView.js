@@ -1,7 +1,21 @@
 import React from 'react'
+
+import {
+  AuditOutlined,
+  ClockCircleOutlined,
+  CloudServerOutlined,
+  DatabaseOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  SettingOutlined,
+  ShopOutlined
+} from '@ant-design/icons'
+
+import { Form } from '@ant-design/compatible'
+import '@ant-design/compatible/assets/index.css'
+
 import {
   Breadcrumb,
-  Icon,
   Menu,
   Button,
   message,
@@ -16,8 +30,7 @@ import {
   Descriptions,
   Drawer,
   Divider,
-  Modal,
-  Form
+  Modal
 } from 'antd'
 import { useParams, useHistory, Link } from 'react-router-dom'
 import moment from 'moment'
@@ -29,7 +42,7 @@ import ChainConfigurationForm from '../components/ChainConfigurationForm'
 import TaskConsolePopUp from '../components/TaskConsolePopUp'
 import CreateServiceForm from '../components/CreateServiceForm'
 import CreateDatastoreForm from '../components/CreateDatastoreForm'
-import DatastoreKeyForm from '../components/DatastoreKeyForm'
+// import DatastoreKeyForm from '../components/DatastoreKeyForm'
 
 const dataType = {
   string: 0,
@@ -60,9 +73,15 @@ export default function ChainView() {
       const { userId } = session
       const { chainId } = params
       const chain = await api.chain.getUserChain(userId, chainId)
-      const contracts = await api.contract.getUserChainContractList(userId, chainId)
-      const datastores = await api.datastore.getUserChainDatastoreList(userId, chainId)
-      setChain({...chain, contracts, datastores})
+      const contracts = await api.contract.getUserChainContractList(
+        userId,
+        chainId
+      )
+      const datastores = await api.datastore.getUserChainDatastoreList(
+        userId,
+        chainId
+      )
+      setChain({ ...chain, contracts, datastores })
     } catch (error) {
       console.log(error)
       message.error(error.message)
@@ -116,13 +135,9 @@ export default function ChainView() {
   }
 
   const createService = async values => {
-    const {userId} = session
+    const { userId } = session
     try {
-      const {
-        contractId,
-        serviceName,
-        functionName,
-      } = values
+      const { contractId, serviceName, functionName } = values
       await api.service.createUserService(userId, serviceName, {
         chainId: chain.chainId,
         contractId,
@@ -137,13 +152,13 @@ export default function ChainView() {
 
   const createDatastore = async values => {
     try {
-      let { name, type, schema } = values
+      let { name, type, columns } = values
       const { taskId } = await api.datastore.deployDatastoreToUserChain(
         session.userId,
         chain.chainId,
         name,
         type,
-        schema
+        columns
       )
       await setMonitorTask(taskId)
     } catch (error) {
@@ -151,7 +166,6 @@ export default function ChainView() {
       message.error(error.message)
     }
   }
-
 
   React.useEffect(() => {
     fetchUserChain()
@@ -200,7 +214,7 @@ export default function ChainView() {
             <Statistic
               value={chain.status}
               valueStyle={{ color: '#3f8600' }}
-              prefix={<Icon type="database" style={{ marginRight: 10 }} />}
+              prefix={<DatabaseOutlined style={{ marginRight: 10 }} />}
               style={{ marginTop: 10 }}
             />
           </Card>
@@ -219,7 +233,7 @@ export default function ChainView() {
                   : '0 Hours'
               }
               valueStyle={{ color: '#3f8600' }}
-              prefix={<Icon type="clock-circle" style={{ marginRight: 10 }} />}
+              prefix={<ClockCircleOutlined style={{ marginRight: 10 }} />}
               style={{ marginTop: 10 }}
             />
           </Card>
@@ -230,7 +244,7 @@ export default function ChainView() {
             <Statistic
               value={chain.contracts.length}
               valueStyle={{ color: '#3f8600' }}
-              prefix={<Icon type="audit" style={{ marginRight: 10 }} />}
+              prefix={<AuditOutlined style={{ marginRight: 10 }} />}
               style={{ marginTop: 10 }}
             />
           </Card>
@@ -241,7 +255,7 @@ export default function ChainView() {
             <Statistic
               value={chain.datastores.length}
               valueStyle={{ color: '#3f8600' }}
-              prefix={<Icon type="shop" style={{ marginRight: 10 }} />}
+              prefix={<ShopOutlined style={{ marginRight: 10 }} />}
               style={{ marginTop: 10 }}
             />
           </Card>
@@ -270,8 +284,7 @@ export default function ChainView() {
                 render={(text, record) => (
                   <React.Fragment>
                     <Tooltip title="View Datastore">
-                      <Icon
-                        type="eye"
+                      <EyeOutlined
                         style={{ fontSize: 20, marginRight: 10 }}
                         onClick={() => {
                           setViewDatastore(record)
@@ -279,8 +292,7 @@ export default function ChainView() {
                       />
                     </Tooltip>
                     <Tooltip title="Delete Datastore">
-                      <Icon
-                        type="delete"
+                      <DeleteOutlined
                         style={{ fontSize: 20, marginRight: 10 }}
                         onClick={async () => {
                           console.log(record)
@@ -300,9 +312,7 @@ export default function ChainView() {
             <div style={{ display: 'flex', marginTop: 10 }}>
               <Button
                 type="primary"
-                disabled={
-                  !chain.deployment || chain.status !== 'Deployed'
-                }
+                disabled={!chain.deployment || chain.status !== 'Deployed'}
                 onClick={() => {
                   setShowCreateDatastore(true)
                 }}
@@ -338,8 +348,7 @@ export default function ChainView() {
                 render={(text, record) => (
                   <React.Fragment>
                     <Tooltip title="View Receipt">
-                      <Icon
-                        type="eye"
+                      <EyeOutlined
                         style={{ fontSize: 20, marginRight: 10 }}
                         onClick={() => {
                           setViewContractId(record.contractId)
@@ -347,8 +356,7 @@ export default function ChainView() {
                       />
                     </Tooltip>
                     <Tooltip title="Delete Contract">
-                      <Icon
-                        type="delete"
+                      <DeleteOutlined
                         style={{ fontSize: 20, marginRight: 10 }}
                         onClick={async () => {
                           try {
@@ -366,8 +374,7 @@ export default function ChainView() {
                       />
                     </Tooltip>
                     <Tooltip title="Create Service">
-                      <Icon
-                        type="cloud-server"
+                      <CloudServerOutlined
                         style={{ fontSize: 20, marginRight: 10 }}
                         onClick={() => {
                           setViewCreateService(record)
@@ -425,16 +432,17 @@ export default function ChainView() {
                   <Descriptions.Item label="Expose to Public">
                     {chain.config.expose ? 'Yes' : 'No'}
                   </Descriptions.Item>
-
                 </Descriptions>
-                <Descriptions column={3} size='small' style={{marginTop: 10}}>
+                <Descriptions column={3} size="small" style={{ marginTop: 10 }}>
                   <Descriptions.Item label="Cluster Namespace">
                     {chain.deployment ? chain.deployment.namespace : 'N/A'}
                   </Descriptions.Item>
                   <Descriptions.Item label="Instance Deployed on">
-                    {chain.deployment ? moment(chain.deployment.createdOn).format(
-                      'DD-MM-YYYY hh:mm:ss'
-                    ): 'N/A'}
+                    {chain.deployment
+                      ? moment(chain.deployment.createdOn).format(
+                          'DD-MM-YYYY hh:mm:ss'
+                        )
+                      : 'N/A'}
                   </Descriptions.Item>
                 </Descriptions>
               </React.Fragment>
@@ -444,7 +452,7 @@ export default function ChainView() {
               <Tooltip title="Deploy chain as configured">
                 <Button
                   type="primary"
-                  icon="database"
+                  icon={<DatabaseOutlined />}
                   disabled={!allowDeploy}
                   style={{ marginRight: 10 }}
                   onClick={createDeployment}
@@ -455,7 +463,7 @@ export default function ChainView() {
               <Tooltip title="Change chain configuration">
                 <Button
                   type="primary"
-                  icon="setting"
+                  icon={<SettingOutlined />}
                   style={{ marginRight: 10 }}
                   disabled={!allowConfigurationUpdate}
                   onClick={() => {
@@ -469,7 +477,7 @@ export default function ChainView() {
                 <Button
                   disabled={!allowUndeploy}
                   type="danger"
-                  icon="delete"
+                  icon={<DeleteOutlined />}
                   style={{ marginRight: 10 }}
                   onClick={deleteDeployment}
                 >
@@ -598,7 +606,9 @@ export default function ChainView() {
 
       {/* view datastore modal ---------------------------------------------- */}
       <Modal
-        title="Datastore"
+        title={
+          !viewDatastore ? 'Datastore' : `Datastore - ${viewDatastore.name}`
+        }
         visible={viewDatastore !== null}
         onCancel={() => {
           setViewDatastore(null)
@@ -608,42 +618,25 @@ export default function ChainView() {
       >
         {viewDatastore ? (
           <React.Fragment>
-            <Card.Meta title={viewDatastore.name} />
             <Table
-              dataSource={viewDatastore.keys.map((v, i)=>{
-                return {
-                  key: `datastore_key_${i}`,
-                  keyIndex: i,
-                  keyName: v,
-                  keyDataType: dataTypeIndex[viewDatastore.keyDataTypes[i]],
+              dataSource={Object.entries(viewDatastore.columns).map(
+                ([columnName, column]) => {
+                  return {
+                    key: `datastore_column_${column.columnIndex}`,
+                    columnIndex: column.columnIndex,
+                    columnName: column.columnName,
+                    columnDataType: column.columnDataType
+                  }
                 }
-              })}
+              )}
               style={{ marginTop: 10 }}
               pagination={false}
               size="small"
             >
-              <Table.Column title="Key Index" dataIndex="keyIndex" />
-              <Table.Column title="Name" dataIndex="keyName" />
-              <Table.Column title="Data Type" dataIndex="keyDataType" />
-              {/* <Table.Column
-                title="Action"
-                render={(text, record, index) => {
-                  // console.log(record)
-                  return (
-                    <Button
-                      onClick={() => {
-                        // setKeys(keys.filter((k, i) => i !== index))
-                      }}
-                      icon="delete"
-                    ></Button>
-                  )
-                }}
-              /> */}
+              <Table.Column title="Column Index" dataIndex="columnIndex" />
+              <Table.Column title="Name" dataIndex="columnName" />
+              <Table.Column title="Data Type" dataIndex="columnDataType" />
             </Table>
-            {/* <DatastoreKeyForm
-              valueCallback={() => {}}
-              refreshCallback={() => {}}
-            /> */}
           </React.Fragment>
         ) : null}
       </Modal>

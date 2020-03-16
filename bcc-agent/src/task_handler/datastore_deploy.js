@@ -10,12 +10,9 @@ const wait = timeout =>
     }, timeout * 1000)
   })
 
-const dataTypeIndex = ['string', 'int', 'float', 'boolean']
-
 module.exports = async (task, taskLogger) => {
   const { params } = task
-  const { userId, chainId, name, type, schema } = params
-  console.log(schema)
+  const { userId, chainId, name, type, columns } = params
 
   // read chain
   const chain = await callDBGate('/chain/readChain', { chainId })
@@ -58,13 +55,12 @@ module.exports = async (task, taskLogger) => {
     chainId,
     abi: artifacts[type].abi,
     bytecode: artifacts[type].evm.bytecode.object,
-    deployArgs: [datastoreId, name]
+    deployArgs: [datastoreId]
   })
 
   taskLogger.info(`${type} contract deployed at: ${receipt.contractAddress}`)
 
-  // update datastore contract
-
+  // create contract doc in db
   const { contractId } = await callDBGate('/contract/writeContract', {
     chainId,
     name: type,
@@ -73,6 +69,7 @@ module.exports = async (task, taskLogger) => {
     receipt
   })
 
+  // update datastore contract
   await callDBGate('/datastore/updateDatastoreContract', {
     datastoreId,
     contractId
@@ -99,23 +96,16 @@ module.exports = async (task, taskLogger) => {
     }
   }
 
-  const datastoreBefore = await callDBGate('/datastore/readDatastore', {
-    datastoreId
-  })
-  console.log('datastore before')
-  console.log(datastoreBefore)
-
-  // set schema
-  await callDBGate('/datastore/setSchema', {
-    datastoreId,
-    schema
-  })
-
-  const datastoreAfter = await callDBGate('/datastore/readDatastore', {
-    datastoreId
-  })
-  console.log('datastore after')
-  console.log(datastoreAfter)
+  // todo: call append columns transaction
+  for (const column of columns) {
+    const { columnName, columnDataType } = column
+    await callTransactionGate(
+      `/callContractMethod/${contractId}/createColumn`,
+      {
+        callArgs: [columnName, columnDataType]
+      }
+    )
+  }
 
   // append datastore to chain and user
 

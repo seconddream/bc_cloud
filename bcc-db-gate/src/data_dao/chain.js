@@ -23,7 +23,8 @@ module.exports = {
       deployment: null,
       contracts: [],
       services: [],
-      datastores: []
+      datastores: [],
+      masterAccountNonce: 0,
     })
     const chain = { chainId: insertedId.toHexString() }
     return chain
@@ -105,6 +106,15 @@ module.exports = {
       { $set: { deployment } }
     )
     if (value === null) throw ChainNotFoundError
+  },
+
+  getMasterAccountNonce: async chainId => {
+    const { value } = await chainCollection.findOneAndUpdate(
+      { _id: new ObjectID(chainId) },
+      { $inc: { masterAccountNonce: 1 } }
+    )
+    if (value === null) throw ChainNotFoundError
+    return { nonce: value.masterAccountNonce }
   },
 
   // append contract id from chain contract list

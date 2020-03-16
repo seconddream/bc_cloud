@@ -1,16 +1,38 @@
 const { Router } = require('express')
 const DatastoreCallControl = require('../control/DatastoreCallControl')
+const DatastoreControl = require('../control/DatastoreControl')
+const ContracControl = require('../control/ContractControl')
 
 const router = new Router()
 
-router.post('/:datastoreId/data', async (req, res, next) => {
+// write new
+router.post('/:datastoreId/row', async (req, res, next) => {
   try {
     const { datastoreId } = req.params
-    const { dataEntries, caller } = req.body
-    await DatastoreCallControl.createDataEntries(
+    const { contractId, row, actor } = req.body
+    res.send(
+      await DatastoreCallControl.writeRow(
+        datastoreId,
+        contractId,
+        row,
+        actor
+      )
+    )
+  } catch (error) {
+    next(error)
+  }
+})
+
+// revoke data row
+router.delete('/:datastoreId/data/:rowIndex', async (req, res, next) => {
+  try {
+    const { datastoreId, rowIndex } = req.params
+    const { contractAddress, actor } = req.body
+    await DatastoreCallControl.revokeRow(
       datastoreId,
-      dataEntries,
-      caller
+      contractAddress,
+      rowIndex,
+      actor
     )
     res.sendStatus(200)
   } catch (error) {
@@ -18,29 +40,25 @@ router.post('/:datastoreId/data', async (req, res, next) => {
   }
 })
 
-router.delete('/:datastoreId/data/:dataIndex', async (req, res, next) => {
-  try {
-    const { datastoreId, dataIndex } = req.params
-    const { caller } = req.body
-    await DatastoreCallControl.revokeDataEntry(datastoreId, dataIndex, caller)
-    res.sendStatus(200)
-  } catch (error) {
-    next(error)
-  }
-})
-
 router.put(
-  '/:datastoreId/data/:dataIndex/:keyIndex',
+  '/:datastoreId/data/:rowIndex/:columnIndex',
   async (req, res, next) => {
     try {
-      const { datastoreId, dataIndex, keyIndex } = req.params
-      const { value, caller } = req.body
-      await DatastoreCallControl.changeDataEntryKeyValue(
+      const {
         datastoreId,
-        dataIndex,
-        keyIndex,
-        value,
-        caller
+        rowIndex,
+        columnIndex,
+      } = req.params
+      const { columnName, columnDataType, dataValue, actor } = req.body
+      await DatastoreCallControl.updateColumn(
+        datastoreId,
+        contractAddress,
+        rowIndex,
+        columnIndex,
+        columnName,
+        columnDataType,
+        dataValue,
+        actor
       )
       res.sendStatus(200)
     } catch (error) {
@@ -49,22 +67,22 @@ router.put(
   }
 )
 
-router.post('/:datastoreId/readData', async (req, res, next) => {
+router.post('/:datastoreId/read', async (req, res, next) => {
   try {
     const { datastoreId } = req.params
-    const { dataIndexSkip, retrieveCount, filters } = req.body
-    if (filters) {
+    const { rowIndexSkip, retrieveCount, filter} = req.body
+    if (filter) {
       res.send(
-        await DatastoreCallControl.readDataEntryByWithFilter(
+        await DatastoreCallControl.readRowsWithFilter(
           datastoreId,
           filters
         )
       )
     } else {
       res.send(
-        await DatastoreCallControl.readDataEntryByDataIndex(
+        await DatastoreCallControl.readRows(
           datastoreId,
-          dataIndexSkip,
+          rowIndexSkip,
           retrieveCount
         )
       )

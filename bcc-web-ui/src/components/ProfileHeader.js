@@ -1,4 +1,5 @@
 import React from 'react'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Button, message ,} from 'antd'
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
@@ -42,15 +43,15 @@ export default function ProfileHeader() {
         style={{ marginLeft: 10 }}
         type="primary"
         shape="circle"
-        icon="user"
+        icon={<UserOutlined />}
       />
       <Button
         style={{ marginLeft: 10 }}
         type="primary"
         shape="circle"
-        icon="logout"
+        icon={<LogoutOutlined />}
         onClick={logout}
       />
     </Header>
-  )
+  );
 }

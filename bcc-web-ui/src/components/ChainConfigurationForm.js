@@ -1,5 +1,7 @@
 import React from 'react'
-import { Form, Select, Button, InputNumber, Checkbox } from 'antd'
+import { Form } from '@ant-design/compatible';
+import '@ant-design/compatible/assets/index.css';
+import { Select, Button, InputNumber, Checkbox } from 'antd';
 
 function ChainConfigurationForm(props) {
   const { getFieldDecorator, validateFields } = props.form

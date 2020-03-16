@@ -1,14 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react'
-import {
-  Button,
-  Table,
-  Modal,
-  Card,
-  Icon,
-  Breadcrumb,
-  message,
-  Drawer
-} from 'antd'
+import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Table, Modal, Card, Breadcrumb, message, Drawer } from 'antd';
 import { useHistory, useRouteMatch, Link } from 'react-router-dom'
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
@@ -78,7 +70,7 @@ export default function ChainListView() {
         <Button
           key="create_chain"
           type="primary"
-          icon='plus'
+          icon={<PlusOutlined />}
           onClick={() => {
             setShowCreateChain(true)
           }}
@@ -104,13 +96,11 @@ export default function ChainListView() {
             key="action"
             render={(text, record) => (
               <React.Fragment>
-                <Icon
-                  type="eye"
+                <EyeOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={() => {
                     history.push(`${url}/${record.chainId}`)
-                  }}
-                />
+                  }} />
               </React.Fragment>
             )}
           />
@@ -128,5 +118,5 @@ export default function ChainListView() {
         <CreateChainForm valueCallback={createChain} />
       </Drawer>
     </React.Fragment>
-  )
+  );
 }

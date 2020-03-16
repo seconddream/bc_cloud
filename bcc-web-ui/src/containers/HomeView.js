@@ -7,7 +7,16 @@ import {
   useHistory,
   useLocation
 } from 'react-router-dom'
-import { Layout, Menu, Icon } from 'antd'
+
+import {
+  CloudServerOutlined,
+  ClusterOutlined,
+  DashboardOutlined,
+  DatabaseOutlined,
+  PictureOutlined,
+} from '@ant-design/icons';
+
+import { Layout, Menu } from 'antd';
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
 import Logo from '../components/Logo'
@@ -49,23 +58,23 @@ export default function HomeView() {
             selectedKeys={pathname.split('/').filter(name => name !== 'home')}
           >
             <Menu.Item key="dashboard">
-              <Icon type="dashboard" />
+              <DashboardOutlined />
               <span>Dashboard</span>
             </Menu.Item>
             <Menu.Item key="chain">
-              <Icon type="cluster" />
+              <ClusterOutlined />
               <span>My Chain</span>
             </Menu.Item>
             <Menu.Item key="project">
-              <Icon type="picture" />
+              <PictureOutlined />
               <span>My Project</span>
             </Menu.Item>
             <Menu.Item key="service">
-              <Icon type="cloud-server" />
+              <CloudServerOutlined />
               <span>My Service</span>
             </Menu.Item>
             <Menu.Item key="datastore">
-              <Icon type="database" />
+              <DatabaseOutlined />
               <span>My Datastore</span>
             </Menu.Item>
           </Menu>
@@ -107,6 +116,6 @@ export default function HomeView() {
           </Content>
         </Layout>
       </Layout>
-    )
+    );
   }
 }

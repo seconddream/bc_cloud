@@ -1,96 +1,85 @@
 const moment = require('moment')
 const { callDBGate, callTransactionGate } = require('../connection')
 
-module.exports = {
-  revokeDataEntry: async (datastoreId, dataIndex, caller = null) => {
-    const t_cached = moment().valueOf()
-    await callDBGate('/datastore/cacheRevokeDataEntry', {
-      datastoreId,
-      dataIndex,
-      t_cached,
-      caller
-    })
+const updateColumn = async (
+  datastoreId,
+  contractId,
+  rowIndex,
+  columnIndex,
+  columnName,
+  columnDataType,
+  dataValue,
+  actor
+) => {
+  const { historyIndex } = await callDBGate('/datastore/cacheDataWrite', {
+    datastoreId,
+    rowIndex,
+    columnIndex,
+    columnName,
+    columnDataType,
+    dataValue,
+    actor
+  })
+  await callTransactionGate(`/fireContractMethod/${contractId}/writeData`, {
+    callArgs: [rowIndex, columnIndex, dataValue, historyIndex]
+  })
+}
 
-    const { contract } = await callDBGate('/datastore/readDatastore', {
-      datastoreId
-    })
-    callTransactionGate(`/callContractMethod/${contract}/deleteData`, {
-      callArgs: [dataIndex, t_cached]
-    })
-  },
-  createDataEntries: async (datastoreId, dataEntries, caller = null) => {
-    const { contract } = await callDBGate('/datastore/readDatastore', {
-      datastoreId
-    })
-    const { keys, keyDatatypes } = await callDBGate(
-      '/datastore/readDatastore',
-      { datastoreId }
+const writeRow = async (datastoreId, contractId, row, actor) => {
+  // get a row index
+  const { rowIndex } = await callDBGate('/datastore/createDataRow', {
+    datastoreId,
+    actor
+  })
+  // update columns in the row
+  for (const [columnName, column] of Object.entries(row)) {
+    const { columnIndex, columnDataType, dataValue } = column
+    await updateColumn(
+      datastoreId,
+      contractId,
+      rowIndex,
+      columnIndex,
+      columnName,
+      columnDataType,
+      dataValue,
+      actor
     )
-    for (const dataEntry of dataEntries) {
-      const { dataIndex } = await callDBGate('/datastore/createDataEntry', {
-        datastoreId,
-        keyCount: keys.length()
-      })
-      for (const [keyName, value] of Object.entries(dataEntry)) {
-        const t_cached = moment().valueOf()
-        const keyIndex = keys.indexOf(keyName)
-        await callDBGate('/datastore/cacheKeyValue', {
-          datastoreId,
-          dataIndex,
-          keyIndex,
-          value,
-          t_cached,
-          caller
-        })
-        // to do: send transaction to chain
-        callTransactionGate(`/callContractMethod/${contract}/writeData`, {
-          callArgs: [dataIndex, keyIndex, value, t_cached]
-        })
-      }
-    }
-  },
-
-  changeDataEntryKeyValue: async (
-    datastoreId,
-    dataIndex,
-    keyIndex,
-    value,
-    caller = null
-  ) => {
-    const t_cached = moment().valueOf()
-    await callDBGate('/datastore/cacheKeyValue', {
-      datastoreId,
-      dataIndex,
-      keyIndex,
-      value,
-      t_cached,
-      caller
-    })
-    // todo: send transaction to chain
-    const { contract } = await callDBGate('/datastore/readDatastore', {
-      datastoreId
-    })
-    callTransactionGate(`/callContractMethod/${contract}/writeData`, {
-      callArgs: [dataIndex, keyIndex, value, t_cached]
-    })
-  },
-
-  readDataEntryByDataIndex: async (
-    datastoreId,
-    dataIndexSkip,
-    retrieveCount = 10
-  ) => {
-    return await callDBGate('/datastore/readDataEntryByDataIndex', {
-      datastoreId,
-      dataIndexSkip,
-      retrieveCount
-    })
-  },
-
-  readDataEntryByWithFilter: async (datastoreId, filters) => {
-    return await callDBGate('/datastore/readDataEntryWithFilter', {
-      datastoreId,
-      filters
-    })
   }
+  return { rowIndex }
+}
+
+const revokeRow = async (datastoreId, contractAddr, rowIndex, actor) => {
+  await callDBGate('/datastore/cacheDataRowRevoke', {
+    datastoreId,
+    rowIndex,
+    actor
+  })
+  await callTransactionGate(
+    `/fireContractMethod/${contractAddr}/revokeDataRow`,
+    {
+      callArgs: [rowIndex]
+    }
+  )
+}
+
+const readRows = async (datastoreId, rowIndexSkip, retrieveCount) => {
+  return await callDBGate('/datastore/readDataRow', {
+    datastoreId,
+    rowIndexSkip,
+    retrieveCount
+  })
+}
+const readRowsWithFilter = async (datastoreId, filter) => {
+  return await callDBGate('/datastore/readDataRowWithFilter', {
+    datastoreId,
+    filter
+  })
+}
+
+module.exports = {
+  updateColumn,
+  writeRow,
+  revokeRow,
+  readRows,
+  readRowsWithFilter
 }

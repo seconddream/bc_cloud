@@ -1,7 +1,18 @@
 import React from 'react'
+
+import {
+  DatabaseOutlined,
+  DeleteOutlined,
+  FileAddOutlined,
+  SaveOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
+
+import { Form } from '@ant-design/compatible';
+import '@ant-design/compatible/assets/index.css';
+
 import {
   Breadcrumb,
-  Icon,
   Menu,
   Button,
   message,
@@ -13,10 +24,9 @@ import {
   Skeleton,
   Drawer,
   Typography,
-  Form,
   Input,
-  Select
-} from 'antd'
+  Select,
+} from 'antd';
 import {
   useParams,
   useHistory,
@@ -364,7 +374,7 @@ export default function ProjectView(props) {
         }}
       >
         <Button
-          icon="file-add"
+          icon={<FileAddOutlined />}
           type="primary"
           style={{ marginRight: 10 }}
           onClick={() => {
@@ -374,7 +384,7 @@ export default function ProjectView(props) {
           New File
         </Button>
         <Button
-          icon="save"
+          icon={<SaveOutlined />}
           type="primary"
           style={{ marginRight: 10 }}
           onClick={save}
@@ -382,7 +392,7 @@ export default function ProjectView(props) {
           Save Project
         </Button>
         <Button
-          icon="thunderbolt"
+          icon={<ThunderboltOutlined />}
           type="primary"
           style={{ marginRight: 10 }}
           onClick={compileProject}
@@ -403,7 +413,7 @@ export default function ProjectView(props) {
             </Select.Option>
           ))}
         </Select>
-        <Button icon="delete" type="danger" onClick={deleteFile}>
+        <Button icon={<DeleteOutlined />} type="danger" onClick={deleteFile}>
           Delete File
         </Button>
       </div>
@@ -544,7 +554,7 @@ export default function ProjectView(props) {
                   <Form.Item label=" ">
                     <Button
                       type="default"
-                      icon="database"
+                      icon={<DatabaseOutlined />}
                       onClick={() => {
                         setShowDeploy(true)
                       }}
@@ -591,5 +601,5 @@ export default function ProjectView(props) {
         />
       </Drawer>
     </React.Fragment>
-  )
+  );
 }

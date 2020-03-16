@@ -1,4 +1,5 @@
 import React from 'react'
+import { DeleteOutlined } from '@ant-design/icons'
 import { Form, Input, Button, Select, Row, Col, Table } from 'antd'
 
 const dataType = {
@@ -10,149 +11,148 @@ const dataType = {
 
 const dataTypeIndex = ['string', 'int', 'float', 'boolean']
 
-function CreateDatastoreForm(props) {
-  const { getFieldDecorator, validateFields } = props.form
-  const { valueCallback } = props
-  const [keys, setKeys] = React.useState([])
+const layout = {
+  labelCol: { span: 8 },
+  wrapperCol: { span: 16 }
+}
+const tailLayout = {
+  wrapperCol: { offset: 8, span: 16 }
+}
 
-  const handleSubmit = e => {
-    e.preventDefault()
-    validateFields(['name', 'type'], async (err, values) => {
-      if (err) return
-      values.schema = {}
-      for (let i = 0; i < keys.length; i++) {
-        values.schema[i] = {
-          keyName: keys[i].keyName,
-          dataType: keys[i].dataType
-        }
-      }
-      valueCallback(values)
+function CreateDatastoreForm(props) {
+  const { valueCallback } = props
+  const [form] = Form.useForm()
+  const [columns, setColumns] = React.useState([])
+
+  const appendColumn = async () => {
+    await form.validateFields(['columnName', 'columnDataType'])
+    const { columnName, columnDataType } = form.getFieldsValue()
+    const newColumns = [...columns]
+    newColumns.push({
+      key: columns.length,
+      columnIndex: columns.length,
+      columnName,
+      columnDataType
     })
+    setColumns(newColumns)
+    form.resetFields(['columnName', 'columnDataType'])
   }
 
-  const addKey = () => {
-    validateFields(['addKeyName', 'addDatatype'], async (err, values) => {
-      if (err) return
-      const { addKeyName, addDatatype } = values
-      setKeys([
-        ...keys,
-        {
-          keyName: addKeyName,
-          dataType: addDatatype,
-          dataTypeName: dataTypeIndex[addDatatype],
-          key: keys.length
-        }
-      ])
-    })
+  const removeColumn = columnIndex => {
+    console.log(columnIndex)
+    const newColumns = columns
+      .filter(c => c.columnIndex !== columnIndex)
+      .map((c, i) => {
+        return { ...c, columnIndex: i }
+      })
+    setColumns(newColumns)
+  }
+
+  const handleSubmit = async ()=>{
+    await form.validateFields(['name', 'type'])
+    const {name, type} = form.getFieldsValue()
+    const values = {name, type, columns}
+    valueCallback(values)
   }
 
   return (
-    <Form onSubmit={handleSubmit} colon={false}>
-      <Form.Item label="Datastore Name">
-        {getFieldDecorator('name', {
-          rules: [
+    <React.Fragment>
+      <Form {...layout} form={form} colon={false}>
+        <Form.Item
+          label="Datastore Name"
+          name="name"
+          rules={[
+            { required: true, message: 'Please give a name to the datastore.' }
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Datastore Type"
+          name="type"
+          rules={[
             {
               required: true,
-              message: 'Please give a name to the datastore.'
+              message: 'Please select a type to the datastore.'
             }
-          ]
-        })(<Input />)}
-      </Form.Item>
-      <Form.Item label="Datastore Name">
-        {getFieldDecorator('type', {
-          rules: [
-            {
-              required: true,
-              message: 'Please select a type.'
-            }
-          ]
-        })(
+          ]}
+        >
           <Select>
             <Select.Option value="Datastore">Datastore</Select.Option>
           </Select>
-        )}
-      </Form.Item>
-
+        </Form.Item>
+        <Form.Item
+          label="Column Name"
+          name="columnName"
+          rules={[
+            ()=>({
+              validator(rule, value){
+                if(columns.filter(c=>c.columnName===value).length === 0){
+                  return Promise.resolve()
+                }else{
+                  return Promise.reject('Column name already used.')
+                }
+              }
+            })
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Column Data Type"
+          name="columnDataType"
+          rules={[
+            {
+              required: true,
+              message: 'Please select a type to the column.'
+            }
+          ]}
+        >
+          <Select>
+            <Select.Option value="string">String</Select.Option>
+            <Select.Option value="boolean">boolean</Select.Option>
+            <Select.Option value="integer">Integer</Select.Option>
+            <Select.Option value="number">Number</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item {...tailLayout}>
+          <Button
+            type="default"
+            onClick={appendColumn}
+            style={{ marginRight: 10 }}
+          >
+            Append Column
+          </Button>
+          <Button type="primary" onClick={handleSubmit}>
+            Create
+          </Button>
+        </Form.Item>
+      </Form>
       <Table
-        dataSource={keys}
+        dataSource={columns}
         style={{ marginTop: 10 }}
         pagination={false}
         size="small"
       >
-        <Table.Column
-          title="Key ID"
-          dataIndex="keyId"
-          render={(text, record, index) => index}
-        />
-        <Table.Column title="Name" dataIndex="keyName" />
-        <Table.Column title="Data Type" dataIndex="dataTypeName" />
+        <Table.Column title="Column Index" dataIndex="columnIndex" />
+        <Table.Column title="Name" dataIndex="columnName" />
+        <Table.Column title="Data Type" dataIndex="columnDataType" />
         <Table.Column
           title="Action"
           render={(text, record, index) => {
-            // console.log(record)
             return (
               <Button
                 onClick={() => {
-                  setKeys(keys.filter((k, i) => i !== index))
+                  removeColumn(record.columnIndex)
                 }}
-                icon="delete"
+                icon={<DeleteOutlined />}
               ></Button>
             )
           }}
         />
       </Table>
-
-      <Row gutter={10} style={{ marginTop: 10 }}>
-        <Col span={8}>
-          <Form.Item label="Key Name">
-            {getFieldDecorator('addKeyName', {
-              rules: [
-                {
-                  required: true,
-                  message: 'Please give a key name.'
-                }
-              ]
-            })(<Input />)}
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item label="Data Type">
-            {getFieldDecorator('addDatatype', {
-              rules: [
-                {
-                  required: true,
-                  message: 'Please select a key data type.'
-                }
-              ]
-            })(
-              <Select>
-                {Object.keys(dataType).map(k => (
-                  <Select.Option
-                    key={`createKey_datatype_${k}`}
-                    value={dataType[k]}
-                  >
-                    {k}
-                  </Select.Option>
-                ))}
-              </Select>
-            )}
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item label=" ">
-            <Button type="primary" onClick={addKey}>
-              Add Key
-            </Button>
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.Item style={{ display: 'flex', justifyContent: 'flex-start' }}>
-        <Button type="primary" htmlType="submit">
-          Create
-        </Button>
-      </Form.Item>
-    </Form>
+    </React.Fragment>
   )
 }
 
-export default Form.create({ name: 'create_datastore' })(CreateDatastoreForm)
+export default CreateDatastoreForm

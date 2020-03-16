@@ -1,10 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react'
+import { DeleteOutlined, EyeOutlined, SecurityScanOutlined } from '@ant-design/icons';
 import {
   Button,
   Table,
   Modal,
   Card,
-  Icon,
   Breadcrumb,
   message,
   Drawer,
@@ -13,8 +13,8 @@ import {
   Descriptions,
   Tag,
   Row,
-  Col
-} from 'antd'
+  Col,
+} from 'antd';
 import { useHistory, useRouteMatch, Link } from 'react-router-dom'
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
@@ -186,26 +186,18 @@ export default function ServiceListView() {
             key="action"
             render={(text, record) => (
               <React.Fragment>
-                <Icon
-                  type="eye"
+                <EyeOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={() => {
                     setViewService(record)
-                  }}
-                />
-                <Icon
-                  type="security-scan"
-                  style={{ fontSize: 20, marginRight: 10 }}
-                  onClick={() => {}}
-                />
-                <Icon
-                  type="delete"
+                  }} />
+                <SecurityScanOutlined style={{ fontSize: 20, marginRight: 10 }} onClick={() => {}} />
+                <DeleteOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={async () => {
                     await deleteService(record.serviceId)
                     await fetchUserServiceList()
-                  }}
-                />
+                  }} />
               </React.Fragment>
             )}
           />
@@ -223,5 +215,5 @@ export default function ServiceListView() {
         {viewService ? renderViewService(viewService) : null}
       </Modal>
     </React.Fragment>
-  )
+  );
 }

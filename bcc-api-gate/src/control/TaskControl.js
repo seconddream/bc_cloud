@@ -96,9 +96,8 @@ module.exports = {
     return { taskId }
   },
 
-  createDatastoreDeployTask: async (userId, chainId, name, type, schema) => {
-    console.log(schema)
-    const params = { userId, chainId, name, type, schema }
+  createDatastoreDeployTask: async (userId, chainId, name, type, columns) => {
+    const params = { userId, chainId, name, type, columns }
     const taskId = await createTask(
       userId,
       'DATASTORE_DEPLOY',

@@ -80,6 +80,16 @@ router.post('/updateChainDeployment', async (req, res, next) => {
   }
 })
 
+router.post('/getMasterAccountNonce', async (req, res, next) => {
+  try {
+    const { chainId } = req.body
+    if (!chainId) throw new Error('Parameter reqired: chainId.')
+    res.send(await ChainDAO.getMasterAccountNonce(chainId))
+  } catch (error) {
+    next(error)
+  }
+})
+
 router.post('/appendContract', async (req, res, next) => {
   try {
     const { chainId, contractId } = req.body
@@ -151,6 +161,5 @@ router.post('/removeDatastore', async (req, res, next) => {
     next(error)
   }
 })
-
 
 module.exports = router

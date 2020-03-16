@@ -14,7 +14,9 @@ const handleError = (error, req, res, next) => {
 app.use(bodyParser.json())
 
 app.use((req, res, next) => {
-  console.log(c.gray(`Transaction REQ: ${req.path} ${JSON.stringify(req.body)}`))
+  console.log(
+    c.gray(`Transaction REQ: ${req.path} ${JSON.stringify(req.body)}`)
+  )
   next()
 })
 
@@ -24,7 +26,7 @@ app.post('/compile', async (req, res, next) => {
 
     if (!sources) throw new Error('Parameter reqired: sources.')
 
-    if(!sources) throw new Error()
+    if (!sources) throw new Error()
     res.send(await Transaction.compile(sources, compilerVersion))
   } catch (error) {
     next(error)
@@ -56,11 +58,35 @@ app.post('/deployContract', async (req, res, next) => {
 })
 
 // contract method call route
-app.post('/callContractMethod/:contractId/:methodName', async (req, res, next) => {
-  try {
-    const { contractId, methodName } = req.params
-    const { callArgs, gas, gasPrice } = req.body
-    res.send(
+app.post(
+  '/callContractMethod/:contractId/:methodName',
+  async (req, res, next) => {
+    try {
+      const { contractId, methodName } = req.params
+      const { callArgs, gas, gasPrice } = req.body
+      res.send(
+        await Transaction.callContractMethod(
+          contractId,
+          methodName,
+          callArgs,
+          gas,
+          gasPrice
+        )
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// contract method call route
+app.post(
+  '/fireContractMethod/:contractId/:methodName',
+  async (req, res, next) => {
+    try {
+      const { contractId, methodName } = req.params
+      const { callArgs, gas, gasPrice } = req.body
+      res.sendStatus(200)
       await Transaction.callContractMethod(
         contractId,
         methodName,
@@ -68,11 +94,12 @@ app.post('/callContractMethod/:contractId/:methodName', async (req, res, next) =
         gas,
         gasPrice
       )
-    )
-  } catch (error) {
-    next(error)
+      
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 app.use(handleError)
 
@@ -87,6 +114,6 @@ const startServer = port => {
     })
 }
 
-module.exports={
-  startServer,
+module.exports = {
+  startServer
 }

@@ -1,14 +1,6 @@
 import React from 'react'
-import {
-  Button,
-  Table,
-  Icon,
-  Breadcrumb,
-  message,
-  Card,
-  Drawer,
-  Tooltip
-} from 'antd'
+import { DeleteOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Table, Breadcrumb, message, Card, Drawer, Tooltip } from 'antd';
 import moment from 'moment'
 import { useHistory, useRouteMatch, Link } from 'react-router-dom'
 import { UserSessionContext } from '../contexts/UserSessionContext'
@@ -83,7 +75,7 @@ export default function ProjectListView() {
         <Tooltip title="Create Project">
           <Button
             type="primary"
-            icon="plus"
+            icon={<PlusOutlined />}
             onClick={() => {
               setShowCreateProject(true)
             }}
@@ -110,20 +102,16 @@ export default function ProjectListView() {
             key="action"
             render={(text, record) => (
               <React.Fragment>
-                <Icon
-                  type="eye"
+                <EyeOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={() => {
                     history.push(`${url}/${record.projectId}`)
-                  }}
-                />
-                <Icon
-                  type="delete"
+                  }} />
+                <DeleteOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={async () => {
                     await deleteProject(record.projectId)
-                  }}
-                />
+                  }} />
               </React.Fragment>
             )}
           />
@@ -141,5 +129,5 @@ export default function ProjectListView() {
         <CreateProjectForm valueCallback={createProject} />
       </Drawer>
     </React.Fragment>
-  )
+  );
 }

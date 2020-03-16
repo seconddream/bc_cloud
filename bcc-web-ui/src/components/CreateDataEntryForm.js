@@ -1,5 +1,8 @@
 import React from 'react'
-import { Form, Input, Button } from 'antd'
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Form } from '@ant-design/compatible';
+import '@ant-design/compatible/assets/index.css';
+import { Input, Button } from 'antd';
 
 function CreateDataEntryForm(props) {
   const { getFieldDecorator, validateFields } = props.form
@@ -28,13 +31,13 @@ function CreateDataEntryForm(props) {
         <Button
           type="primary"
           htmlType="submit"
-          icon="check-circle"
+          icon={<CheckCircleOutlined />}
           style={{ marginRight: 10 }}
         />
-        <Button type="danger" icon="close-circle" />
+        <Button type="danger" icon={<CloseCircleOutlined />} />
       </Form.Item>
     </Form>
-  )
+  );
 }
 
 export default Form.create({ name: 'create_data_entry' })(CreateDataEntryForm)

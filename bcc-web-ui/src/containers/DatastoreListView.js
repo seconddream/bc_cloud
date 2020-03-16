@@ -1,10 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react'
+import { EyeOutlined, SecurityScanOutlined } from '@ant-design/icons';
 import {
   Button,
   Table,
   Modal,
   Card,
-  Icon,
   Breadcrumb,
   message,
   Drawer,
@@ -13,8 +13,8 @@ import {
   Descriptions,
   Tag,
   Row,
-  Col
-} from 'antd'
+  Col,
+} from 'antd';
 import { useHistory, useRouteMatch, Link } from 'react-router-dom'
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
@@ -68,23 +68,17 @@ export default function DatastoreListView() {
             key="action"
             render={(text, record) => (
               <React.Fragment>
-                <Icon
-                  type="eye"
+                <EyeOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={() => {
                     history.push(`${url}/${record.datastoreId}`)
-                  }}
-                />
-                <Icon
-                  type="security-scan"
-                  style={{ fontSize: 20, marginRight: 10 }}
-                  onClick={() => {}}
-                />
+                  }} />
+                <SecurityScanOutlined style={{ fontSize: 20, marginRight: 10 }} onClick={() => {}} />
               </React.Fragment>
             )}
           />
         </Table>
       </Card>
     </React.Fragment>
-  )
+  );
 }
