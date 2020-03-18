@@ -82,14 +82,45 @@ export const getDatastoreData = async (
   filters = null
 ) => {
   return await APIGate.post(`/datastore/${datastoreId}/read`, {
-    rowIndexSkip, retrieveCount, filters
+    rowIndexSkip,
+    retrieveCount,
+    filters
   })
 }
 
-export const writeDataStoreDataRow = async (
-  datastoreId, contractId, row
-)=>{
-  return await APIGate.post(`/datastore/${datastoreId}/row`, {
-    contractId, row
+export const writeDataStoreDataRow = async (datastoreId, contractId, row) => {
+  return await APIGate.post(`/datastore/${datastoreId}/${contractId}/row`, {
+    row
   })
+}
+
+export const updateDataStoreDataValue = async (
+  datastoreId,
+  contractId,
+  rowIndex,
+  columnIndex,
+  columnName,
+  columnDataType,
+  dataValue
+) => {
+  return await APIGate.put(
+    `/datastore/${datastoreId}/${contractId}/data/${rowIndex}/${columnIndex}/dataValue`,
+    {
+      contractId,
+      columnName,
+      columnIndex,
+      columnDataType,
+      dataValue
+    }
+  )
+}
+
+export const revokeDatastoreDataRow = async (
+  datastoreId,
+  contractId,
+  rowIndex
+)=>{
+  return await APIGate.delete(
+    `/datastore/${datastoreId}/${contractId}/data/${rowIndex}`
+  )
 }

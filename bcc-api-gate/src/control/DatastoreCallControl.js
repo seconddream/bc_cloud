@@ -48,14 +48,14 @@ const writeRow = async (datastoreId, contractId, row, actor) => {
   return { rowIndex }
 }
 
-const revokeRow = async (datastoreId, contractAddr, rowIndex, actor) => {
+const revokeRow = async (datastoreId, contractId, rowIndex, actor) => {
   await callDBGate('/datastore/cacheDataRowRevoke', {
     datastoreId,
     rowIndex,
     actor
   })
   await callTransactionGate(
-    `/fireContractMethod/${contractAddr}/revokeDataRow`,
+    `/fireContractMethod/${contractId}/revokeDataRow`,
     {
       callArgs: [rowIndex]
     }

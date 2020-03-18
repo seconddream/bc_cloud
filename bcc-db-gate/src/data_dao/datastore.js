@@ -144,14 +144,15 @@ const appendColumn = async (
 
 // cache a data row 
 const createDataRow = async (datastoreId) => {
+  console.log(datastoreId)
   const datastore = await readDatastore(datastoreId)
+  console.log(datastore)
   const rowIndex = await getRowIndex(datastoreId)
   // locate the datastore data row collection
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
   // insert data row as a doc
   const { insertedId } = await collection.insertOne({
     rowIndex,
-    revoked: false,
     columns: {...datastore.columns},
     revoke: null
   })
@@ -162,7 +163,7 @@ const createDataRow = async (datastoreId) => {
 const cacheDataRowRevoke = async (datastoreId, rowIndex, actor) => {
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
   const { value } = await collection.findOneAndUpdate(
-    { rowIndex, revoke: null },
+    { rowIndex: parseInt(rowIndex) },
     { $set: { revoke: { actor, t_cached: moment().unix() } } }
   )
   if (value === null) throw new Error('No data row found.')
@@ -172,7 +173,7 @@ const cacheDataRowRevoke = async (datastoreId, rowIndex, actor) => {
 const confirmDataRowRevoked = async (datastoreId, rowIndex, t_bc) => {
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
   const { value } = await collection.findOneAndUpdate(
-    { rowIndex, revoke: null },
+    { rowIndex: parseInt(rowIndex) },
     { $set: { 'revoke.t_bc': parseInt(t_bc) } }
   )
   if (value === null) throw new Error('No data row found.')
@@ -189,7 +190,7 @@ const cacheDataWrite = async (
 ) => {
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
   const { value } = await collection.findOneAndUpdate(
-    { rowIndex },
+    { rowIndex: parseInt(rowIndex) },
     {
       $push: {
         [`columns.${columnName}.history`]: {
