@@ -1,8 +1,13 @@
 const express = require('express')
+const moment = require('moment')
+const Web3 = require('web3')
 const bodyParser = require('body-parser')
 const c = require('ansi-colors')
 
+const web3 = new Web3(Web3.givenProvider)
+
 const { callDBGate } = require('./connection')
+const authRouther = require('./router/AuthRouter')
 const userRouter = require('./router/UserRouter')
 const chainRouter = require('./router/ChainRouter')
 const taskRouter = require('./router/TaskRouter')
@@ -16,7 +21,9 @@ const datastoreCallRouter = require('./router/DataStoreCallRouter')
 const app = express()
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
+
 app.use((req, res, next) => {
+
   if(!req.path.includes('/task'))
     console.log(c.gray(`APIGate REQ: ${req.path} ${JSON.stringify(req.body)}`))
   next()
@@ -27,6 +34,7 @@ const handleError = (error, req, res, next) => {
   res.status(500).send(error.message)
 }
 
+app.use('/', authRouther)
 app.use('/user', userRouter)
 app.use('/user', chainRouter)
 app.use('/user', taskRouter)

@@ -1,7 +1,8 @@
 import Web3 from 'web3'
 import { APIGate } from './connection'
 
-const web3 = new Web3(Web3.givenProvider)
+const web3 = new Web3()
+
 export const getUser = async userId => {
   return await APIGate.get(`/user/${userId}`)
 }
@@ -15,12 +16,11 @@ export const login = async (email, password, remember) => {
     throw new Error('Fail to recover account.')
   }
   const signedObject = web3.eth.accounts.sign(token, account.privateKey)
-  const signedToken = signedObject.signature
+  const tokenSignature = signedObject.signature
   const { userId } = await APIGate.post('/user/login', {
-    email,
-    signedToken
+    email, tokenSignature
   })
-  const user = { userId, signedToken, account }
+  const user = { userId, account }
   if (remember) {
     window.localStorage.setItem('bcc_session', JSON.stringify(user))
   }

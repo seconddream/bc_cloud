@@ -41,7 +41,7 @@ export default function DatastoreView() {
 
   const [rowIndexSkip, setRowIndexSkip] = React.useState(0)
   const [retrieveCount, setRetrieveCount] = React.useState(10)
-  const [filters, setFilters] = React.useState(null)
+  const [filters, setFilters] = React.useState('')
   const [datastore, setDatastore] = React.useState(null)
   const [datastoreData, setDatastoreData] = React.useState([])
   const [datastoreDisplayColumns, setDatastoreDisplayColumns] = React.useState(
@@ -99,8 +99,12 @@ export default function DatastoreView() {
         entry[columnName] = 'N/A'
         if (column.history && column.history.length > 0) {
           const last = column.history[column.history.length - 1]
+          const displayValue =
+            typeof last.value === 'boolean'
+              ? JSON.stringify(last.value)
+              : last.value
           if (last) {
-            entry[columnName] = last.t_bc ? last.value : last.value + ' *'
+            entry[columnName] = last.t_bc ? displayValue : displayValue + ' *'
           }
         }
       }
@@ -111,6 +115,18 @@ export default function DatastoreView() {
 
   const fetchDatastore = async () => {
     try {
+      let filtersObj = null
+
+      if (filters !== '') {
+        try {
+          filtersObj = JSON.parse(filters)
+        } catch (error) {
+          console.log(error)
+          message.error('Filter format wrong!')
+          return
+        }
+      }
+
       // load datastore
       const datastore = await api.datastore.getUserDatastore(
         session.userId,
@@ -127,7 +143,7 @@ export default function DatastoreView() {
         datastoreId,
         rowIndexSkip,
         retrieveCount,
-        filters
+        filtersObj
       )
       console.log(datastoreData)
       setDatastoreData(datastoreData)
@@ -180,13 +196,18 @@ export default function DatastoreView() {
       <React.Fragment>
         <div style={{ padding: 20 }}>
           {row.revoke === null ? (
-            <div style={{display: 'flex'}}>
+            <div style={{ display: 'flex' }}>
               <Descriptions column={5} size="small">
                 <Descriptions.Item label="Revoked">No</Descriptions.Item>
               </Descriptions>
-              <Button type='danger' onClick={()=>{
-                revokeRow(rowIndex)
-              }}>Revoke This Row</Button>
+              <Button
+                type="danger"
+                onClick={() => {
+                  revokeRow(rowIndex)
+                }}
+              >
+                Revoke This Row
+              </Button>
             </div>
           ) : (
             <Descriptions column={5} size="small">
@@ -231,30 +252,52 @@ export default function DatastoreView() {
                   </div>
                 ) : null}
                 <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-                  {column.history.reverse().map((h, i) => (
-                    <React.Fragment key={`${columnName}_history_${i}`}>
-                      <Descriptions column={4} size="small" bordered layout='vertical'>
-                        <Descriptions.Item label="Value">
-                          {h.value}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Cached">
-                          {moment
-                            .unix(parseInt(h.t_cached))
-                            .format('MMM DD YYYY HH:mm:ss')}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Mined">
-                          {h.t_bc
+                  <Table
+                    pagination={false}
+                    dataSource={column.history
+                      .map((h, i) => ({ ...h, key: `v_history_${i}` }))
+                      .reverse()}
+                    columns={[
+                      {
+                        title: 'Value',
+                        dataIndex: 'value',
+                        render: (text, history, index) => {
+                          return typeof history.value === 'boolean'
+                            ? JSON.stringify(history.value)
+                            : history.value
+                        }
+                      },
+                      {
+                        title: 'Cached',
+                        dataIndex: 't_cached',
+                        render: (text, history, index) => {
+                          return history.t_cached
                             ? moment
-                                .unix(parseInt(h.t_bc))
+                                .unix(parseInt(history.t_cached))
                                 .format('MMM DD YYYY HH:mm:ss')
-                            : 'N/A'}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="From">
-                          {h.actor ? h.actor : 'Unknown'}
-                        </Descriptions.Item>
-                      </Descriptions>
-                    </React.Fragment>
-                  ))}
+                            : 'N/A'
+                        }
+                      },
+                      {
+                        title: 'Mined',
+                        dataIndex: 't_bc',
+                        render: (text, history, index) => {
+                          return history.t_bc
+                            ? moment
+                                .unix(parseInt(history.t_bc))
+                                .format('MMM DD YYYY HH:mm:ss')
+                            : 'N/A'
+                        }
+                      },
+                      {
+                        title: 'By',
+                        dataIndex: 'actor',
+                        render: (text, history, index) => {
+                          return history.actor ? history.actor : 'Unknown'
+                        }
+                      }
+                    ]}
+                  ></Table>
                 </div>
               </Tabs.TabPane>
             ))}
@@ -270,7 +313,7 @@ export default function DatastoreView() {
 
   React.useEffect(() => {
     fetchDatastore(rowIndexSkip, retrieveCount, filters)
-  }, [rowIndexSkip, retrieveCount, filters])
+  }, [rowIndexSkip, retrieveCount])
 
   if (!datastore) return <Skeleton active />
 
@@ -303,19 +346,17 @@ export default function DatastoreView() {
             >
               New Data Row
             </Button>
-            <Button
-              type="default"
-              onClick={() => {
-                fetchDatastore()
-              }}
-            >
+            <Button type="default" onClick={fetchDatastore}>
               Refresh
             </Button>
             <span style={{ flexGrow: 1 }}></span>
             <Input.Search
               placeholder="input search text"
               style={{ width: 300 }}
-              onSearch={value => console.log(value)}
+              onChange={e => {
+                setFilters(e.target.value)
+              }}
+              onSearch={fetchDatastore}
               enterButton
             />
           </div>

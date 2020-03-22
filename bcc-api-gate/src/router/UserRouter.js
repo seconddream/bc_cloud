@@ -3,6 +3,7 @@ const UserControl = require('../control/UserControl')
 
 const router = new Router()
 
+
 router.post('/credential', async (req, res, next) => {
   try {
     const { email } = req.body
@@ -15,8 +16,8 @@ router.post('/credential', async (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
   try {
-    const { email, signedToken } = req.body
-    const user = await UserControl.login(email, signedToken)
+    const { email, tokenSignature } = req.body
+    const user = await UserControl.login(email, tokenSignature)
     res.send(user)
   } catch (error) {
     next(error)

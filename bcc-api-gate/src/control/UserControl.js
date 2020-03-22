@@ -25,7 +25,7 @@ module.exports = {
   },
 
   // login with signed token
-  login: async (email, signedToken) => {
+  login: async (email, tokenSignature) => {
     const { userId, accountAddr } = await callDBGate('/user/readUserByEmail', {
       email
     })
@@ -34,7 +34,7 @@ module.exports = {
     })
     let accountAddrRecovered = null
     try {
-      accountAddrRecovered = web3.eth.accounts.recover(token, signedToken)
+      accountAddrRecovered = web3.eth.accounts.recover(token, tokenSignature)
     } catch (error) {
       throw new Error('Token recover failed.')
     }
@@ -48,7 +48,6 @@ module.exports = {
     const user = await await callDBGate('/user/readUserById', {
       userId
     })
-    delete user.accountAddr
     delete user.keystore
     return user
   },

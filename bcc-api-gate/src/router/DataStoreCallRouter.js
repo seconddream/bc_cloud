@@ -65,8 +65,8 @@ router.put(
 router.post('/:datastoreId/read', async (req, res, next) => {
   try {
     const { datastoreId } = req.params
-    const { rowIndexSkip, retrieveCount, filter } = req.body
-    if (filter) {
+    const { rowIndexSkip, retrieveCount, filters } = req.body
+    if (filters) {
       res.send(
         await DatastoreCallControl.readRowsWithFilter(datastoreId, filters)
       )

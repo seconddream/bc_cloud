@@ -6,6 +6,7 @@ const UserControl = require('../control/UserControl')
 
 const router = new Router()
 
+
 // create user chain
 router.post('/:userId/chain', async (req, res, next) => {
   try {

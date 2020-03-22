@@ -179,6 +179,25 @@ const confirmDataRowRevoked = async (datastoreId, rowIndex, t_bc) => {
   if (value === null) throw new Error('No data row found.')
 }
 
+const parseDataValue = (v, t)=>{
+  switch (t) {
+    case 'string':
+      return v.toString();
+    case 'integer':
+      return parseInt(v)
+    case 'number':
+      return parseFloat(v)
+    case 'boolean':
+      if(v==='true'){
+        return true
+      }else{
+        return false
+      }
+    default:
+      throw new Error(`Unsupported data type: ${t}`);
+  }
+}
+
 const cacheDataWrite = async (
   datastoreId,
   rowIndex,
@@ -189,12 +208,18 @@ const cacheDataWrite = async (
   actor
 ) => {
   const collection = await mongoClient.db('bcc-data').collection(datastoreId)
+  let parsedDataValue = null
+  try {
+    parsedDataValue = parseDataValue(dataValue, columnDataType)
+  } catch (error) {
+    throw error
+  }
   const { value } = await collection.findOneAndUpdate(
     { rowIndex: parseInt(rowIndex) },
     {
       $push: {
         [`columns.${columnName}.history`]: {
-          value: dataValue,
+          value: parsedDataValue,
           actor,
           t_cached: moment().unix()
         }
@@ -254,10 +279,14 @@ const readDataRow = async (
 
 const readDataRowWithFilter = async (datastoreId, filter) => {
   const collection = mongoClient.db('bcc-data').collection(datastoreId)
-  const filterObj ={}
-  Object.entries(filter).forEach(([columnName, filterValue])=>{
-    filterObj[`columns.${columnName}.history`] = {value: filterValue}
+
+  const filterList = Object.entries(filter).map(([columnName, filterValue])=>{
+    return {
+      [`columns.${columnName}.history`]: {$elemMatch: {value: filterValue} } 
+    }
   })
+  const filterObj = { $and: filterList}
+  console.log(filterObj)
   const docs = await collection.find(filterObj).toArray()
   return docs
 }
