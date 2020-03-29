@@ -23,6 +23,7 @@ import { UserSessionContext } from '../contexts/UserSessionContext'
 import api from '../api/index'
 
 import DataValueUpdateForm from '../components/DataValueUpdateForm'
+import AccessControlPanel from '../components/AccessControlPanel'
 
 const layout = {
   labelCol: { span: 8 },
@@ -50,6 +51,7 @@ export default function DatastoreView() {
   const [datastoreDisplayData, setDatastoreDisplayData] = React.useState([])
   const [detailRowIndex, setDetailRowIndex] = React.useState(null)
   const [showCreateDataRow, setShowCreateDataRow] = React.useState(false)
+  const [showModifySecurity, setShowModifySecurity] = React.useState(false)
 
   // prepare table structure
   const parseDatastoreDisplayColumns = datastore => {
@@ -163,31 +165,40 @@ export default function DatastoreView() {
   }
 
   const createDataRow = async values => {
-    const datastoreId = datastore.datastoreId
-    const contractId = datastore.contract
-    const row = {}
-    for (const [columnName, dataValue] of Object.entries(values)) {
-      if (dataValue) {
-        row[columnName] = parseColumn(columnName, dataValue)
+    try {
+      const datastoreId = datastore.datastoreId
+      const contractId = datastore.contract
+      const row = {}
+      for (const [columnName, dataValue] of Object.entries(values)) {
+        if (dataValue) {
+          row[columnName] = parseColumn(columnName, dataValue)
+        }
       }
+      const rowIndex = await api.datastore.writeDataStoreDataRow(
+        datastoreId,
+        contractId,
+        row
+      )
+      setShowCreateDataRow(false)
+      fetchDatastore()
+    } catch (error) {
+      console.log(error)
+      message.error(error.message)
     }
-    const rowIndex = await api.datastore.writeDataStoreDataRow(
-      datastoreId,
-      contractId,
-      row
-    )
-    setShowCreateDataRow(false)
-    fetchDatastore()
-    console.log(rowIndex)
   }
 
   const revokeRow = async rowIndex => {
-    await api.datastore.revokeDatastoreDataRow(
-      datastore.datastoreId,
-      datastore.contract,
-      rowIndex
-    )
-    fetchDatastore()
+    try {
+      await api.datastore.revokeDatastoreDataRow(
+        datastore.datastoreId,
+        datastore.contract,
+        rowIndex
+      )
+      fetchDatastore()
+    } catch (error) {
+      console.log(error)
+      message.error(error.message)
+    }
   }
 
   const renderRowDetail = rowIndex => {
@@ -346,8 +357,20 @@ export default function DatastoreView() {
             >
               New Data Row
             </Button>
-            <Button type="default" onClick={fetchDatastore}>
+            <Button
+              type="default"
+              onClick={fetchDatastore}
+              style={{ marginRight: 10 }}
+            >
               Refresh
+            </Button>
+            <Button
+              type="default"
+              onClick={() => {
+                setShowModifySecurity(true)
+              }}
+            >
+              Security
             </Button>
             <span style={{ flexGrow: 1 }}></span>
             <Input.Search
@@ -419,6 +442,19 @@ export default function DatastoreView() {
                 </Button>
               </Form.Item>
             </Form>
+          </Drawer>
+          <Drawer
+            title="Modify Security Rules"
+            width={500}
+            visible={showModifySecurity}
+            onClose={() => {
+              setShowModifySecurity(false)
+            }}
+          >
+            <AccessControlPanel
+              parentType="datastore"
+              parentId={datastore.datastoreId}
+            />
           </Drawer>
           <Modal
             title={`Data Row ${detailRowIndex}`}

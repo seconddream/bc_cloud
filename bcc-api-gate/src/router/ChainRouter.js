@@ -92,13 +92,12 @@ router.post(
   async (req, res, next) => {
     try {
       const { userId, chainId } = req.params
-      const { projectId, artifactName, tx, args } = req.body
+      const { projectId, artifactName, args } = req.body
       const { taskId } = await TaskControl.createArtifactDeployTask(
         userId,
         chainId,
         projectId,
         artifactName,
-        tx,
         args
       )
       res.send({ taskId })

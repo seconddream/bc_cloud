@@ -111,6 +111,7 @@ module.exports = async (task, taskLogger) => {
 
   await callDBGate('/chain/appendDatastore', { chainId, datastoreId })
   await callDBGate('/user/appendDatastore', { userId, datastoreId })
+  await callDBGate('/access/writeAccess', { parentId: datastoreId })
 
   taskLogger.info(`Datastore deployed.`)
 }

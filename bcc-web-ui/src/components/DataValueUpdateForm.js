@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form, Input, Button } from 'antd'
+import { Form, Input, Button, message } from 'antd'
 
 import api from '../api/index'
 
@@ -9,20 +9,23 @@ function ChainConfigurationForm(props) {
   const { columnIndex, columnName, columnDataType } = column
 
   const updateDataValue = async () => {
-    const { dataValue } = dataValueUpdateForm.getFieldsValue()
-    await api.datastore.updateDataStoreDataValue(
-      datastoreId,
-      contractId,
-      rowIndex,
-      columnIndex,
-      columnName,
-      columnDataType,
-      dataValue
-    )
-    await refresh()
+    try {
+      const { dataValue } = dataValueUpdateForm.getFieldsValue()
+      await api.datastore.updateDataStoreDataValue(
+        datastoreId,
+        contractId,
+        rowIndex,
+        columnIndex,
+        columnName,
+        columnDataType,
+        dataValue
+      )
+      await refresh()
+    } catch (error) {
+      console.log(error)
+      message.error(error.message)
+    }
   }
-
-
 
   return (
     <Form form={dataValueUpdateForm} onFinish={updateDataValue} layout="inline">

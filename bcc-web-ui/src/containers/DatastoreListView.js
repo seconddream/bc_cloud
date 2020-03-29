@@ -73,12 +73,12 @@ export default function DatastoreListView() {
                   onClick={() => {
                     history.push(`${url}/${record.datastoreId}`)
                   }} />
-                <SecurityScanOutlined style={{ fontSize: 20, marginRight: 10 }} onClick={() => {}} />
               </React.Fragment>
             )}
           />
         </Table>
       </Card>
+      
     </React.Fragment>
   );
 }

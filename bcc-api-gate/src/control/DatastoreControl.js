@@ -42,6 +42,8 @@ module.exports = {
     await callDBGate('/contract/deleteContract', {
       contractId: datastore.contract
     })
+    await callDBGate('/access/deleteAccess', {parentId: datastoreId})
+
   },
 
 }

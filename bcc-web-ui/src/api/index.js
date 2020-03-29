@@ -5,6 +5,7 @@ import * as project from './project'
 import * as service from './service'
 import * as task from './task'
 import * as user from './user'
+import * as access from './access'
 
 export default {
   user,
@@ -15,4 +16,5 @@ export default {
   service,
   task,
   user,
+  access,
 }

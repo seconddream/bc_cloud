@@ -10,6 +10,7 @@ const datastoreRouter = require('./data_api_router/datastore')
 const projectRouter = require('./data_api_router/project')
 const serviceRouter = require('./data_api_router/service')
 const taskRouter = require('./data_api_router/task')
+const accessRouter = require('./data_api_router/access')
 
 const app = express()
 app.use(bodyParser.json())
@@ -33,6 +34,7 @@ app.use('/datastore', datastoreRouter)
 app.use('/project', projectRouter)
 app.use('/service', serviceRouter)
 app.use('/task', taskRouter)
+app.use('/access', accessRouter)
 
 app.post('/server/clearData', async (req, res, next) => {
   try {

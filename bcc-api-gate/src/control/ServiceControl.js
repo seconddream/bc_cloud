@@ -9,6 +9,7 @@ module.exports = {
       config
     })
     await callDBGate('/user/appendService', {userId, serviceId})
+    await callDBGate('/access/writeAccess', {parentId: serviceId})
     return { serviceId }
   },
 
@@ -26,5 +27,6 @@ module.exports = {
   deleteService: async (userId, serviceId) => {
     await callDBGate('/service/deleteService', {serviceId})
     await callDBGate('/user/removeService', {userId, serviceId})
+    await callDBGate('/access/deleteAccess', {parentId: serviceId})
   }
 }

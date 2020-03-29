@@ -1,5 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react'
-import { DeleteOutlined, EyeOutlined, SecurityScanOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  EyeOutlined,
+  SecurityScanOutlined
+} from '@ant-design/icons'
 import {
   Button,
   Table,
@@ -13,14 +17,15 @@ import {
   Descriptions,
   Tag,
   Row,
-  Col,
-} from 'antd';
+  Col
+} from 'antd'
 import { useHistory, useRouteMatch, Link } from 'react-router-dom'
 
 import { UserSessionContext } from '../contexts/UserSessionContext'
 import api from '../api/index'
 
 import CallServiceForm from '../components/CallServiceForm'
+import AccessControlPanel from '../components/AccessControlPanel'
 
 export default function ServiceListView() {
   const { session } = useContext(UserSessionContext)
@@ -28,6 +33,7 @@ export default function ServiceListView() {
   const { url } = useRouteMatch()
   const [serviceList, setServiceList] = useState([])
   const [viewService, setViewService] = useState(null)
+  const [viewServiceSecurity, setViewServiceSecurity] = useState(null)
 
   const makeServiceCall = async values => {
     console.log(values)
@@ -47,7 +53,7 @@ export default function ServiceListView() {
 
   const fetchUserServiceList = async () => {
     try {
-      const {userId} = session
+      const { userId } = session
       const serviceList = await api.service.getUserServiceList(userId)
 
       for (const service of serviceList) {
@@ -190,14 +196,21 @@ export default function ServiceListView() {
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={() => {
                     setViewService(record)
-                  }} />
-                <SecurityScanOutlined style={{ fontSize: 20, marginRight: 10 }} onClick={() => {}} />
+                  }}
+                />
+                <SecurityScanOutlined
+                  style={{ fontSize: 20, marginRight: 10 }}
+                  onClick={() => {
+                    setViewServiceSecurity(record)
+                  }}
+                />
                 <DeleteOutlined
                   style={{ fontSize: 20, marginRight: 10 }}
                   onClick={async () => {
                     await deleteService(record.serviceId)
                     await fetchUserServiceList()
-                  }} />
+                  }}
+                />
               </React.Fragment>
             )}
           />
@@ -214,6 +227,23 @@ export default function ServiceListView() {
       >
         {viewService ? renderViewService(viewService) : null}
       </Modal>
+      <Drawer
+        title={
+          viewServiceSecurity
+            ? `Security Rule ${viewServiceSecurity.name}`
+            : ''
+        }
+        width={500}
+        visible={viewServiceSecurity !== null}
+        onClose={() => {
+          setViewServiceSecurity(null)
+        }}
+      >
+        <AccessControlPanel
+          parentType="service"
+          parentId={viewServiceSecurity ? viewServiceSecurity.serviceId : null}
+        />
+      </Drawer>
     </React.Fragment>
-  );
+  )
 }

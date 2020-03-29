@@ -21,7 +21,8 @@ const run = async () => {
         if (task === 'NO_TASK') {
           continue
         }
-        console.log(c.gray(`AGENT GOT NEW TASK: \\n ${JSON.stringify(task)}`))
+        console.log(c.gray(`AGENT GOT NEW TASK: `))
+        console.log(c.gray(JSON.stringify(task, null, 2)))
         // run task
         await TaskRunner.run(task)
       } catch (error) {

@@ -2,6 +2,8 @@ const { Router } = require('express')
 
 const TaskControl = require('../control/TaskControl')
 const DatastoreController = require('../control/DatastoreControl')
+const AccessControl = require('../control/AccessControl')
+
 
 const router = new Router()
 
@@ -93,5 +95,105 @@ router.get('/:userId/datastore/:datastoreId', async (req, res, next) => {
     next(error)
   }
 })
+
+
+router.get('/:userId/datastore/:datastoreId/access', async (req, res, next) => {
+  try {
+    const { datastoreId } = req.params
+    res.send(await AccessControl.readAccess(datastoreId))
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.put(
+  '/:userId/datastore/:datastoreId/access/readWhiteList',
+  async (req, res, next) => {
+    try {
+      const { datastoreId } = req.params
+      const { actor } = req.body
+      await AccessControl.appendActorToList(datastoreId, actor, [
+        'readWhiteList'
+      ])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.delete(
+  '/:userId/datastore/:datastoreId/access/readWhiteList/:actor',
+  async (req, res, next) => {
+    try {
+      const { datastoreId, actor } = req.params
+      await AccessControl.removeActorFromList(datastoreId, actor, [
+        'readWhiteList'
+      ])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.put(
+  '/:userId/datastore/:datastoreId/access/writeWhiteList',
+  async (req, res, next) => {
+    try {
+      const { datastoreId } = req.params
+      const { actor } = req.body
+      await AccessControl.appendActorToList(datastoreId, actor, [
+        'writeWhiteList'
+      ])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.delete(
+  '/:userId/datastore/:datastoreId/access/writeWhiteList/:actor',
+  async (req, res, next) => {
+    try {
+      const { datastoreId, actor } = req.params
+      await AccessControl.removeActorFromList(datastoreId, actor, [
+        'writeWhiteList'
+      ])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.put(
+  '/:userId/datastore/:datastoreId/access/blackList',
+  async (req, res, next) => {
+    try {
+      const { datastoreId } = req.params
+      const { actor } = req.body
+      await AccessControl.appendActorToList(datastoreId, actor, ['blackList'])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+router.delete(
+  '/:userId/datastore/:datastoreId/access/blackList/:actor',
+  async (req, res, next) => {
+    try {
+      const { datastoreId, actor } = req.params
+      await AccessControl.removeActorFromList(datastoreId, actor, ['blackList'])
+      res.sendStatus(200)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
 
 module.exports = router
