@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: bcc-api-gate-deployment
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       component: bcc-api-gate

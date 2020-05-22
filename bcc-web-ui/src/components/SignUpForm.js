@@ -20,20 +20,20 @@ function SignUpForm(props) {
   return (
     <div
       style={{
-        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}
     >
-      <Form style={{ maxWidth: '300px' }} onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <Form.Item>
           {getFieldDecorator('email', {
-            rules: [{ required: true, message: 'Please input your E-mail!' }]
+            rules: [{ required: true, message: 'Please input your username!' }]
           })(
             <Input
               prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               placeholder="Username"
+              style={{width: '100%'}}
             />
           )}
         </Form.Item>
@@ -46,6 +46,7 @@ function SignUpForm(props) {
               prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               type="password"
               placeholder="Password"
+              style={{width: '100%'}}
             />
           )}
         </Form.Item>
@@ -60,6 +61,7 @@ function SignUpForm(props) {
               prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
               type="password"
               placeholder="Password repeat"
+              style={{width: '100%'}}
             />
           )}
         </Form.Item>

@@ -713,7 +713,8 @@ module.exports = async (task, taskLogger) => {
 
     const deployment = {
       namespace: chainName,
-      createdOn: moment().valueOf()
+      createdOn: moment().valueOf(),
+      masterAccountNonce: 0,
     }
     await callDBGate('/chain/updateChainDeployment', { chainId, deployment })
     await callDBGate('/chain/updateChainStatus', {

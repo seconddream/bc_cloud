@@ -27,6 +27,7 @@ router.all('/datastore/:datastoreId/:contractId*', async (req, res, next) => {
   try {
     const { datastoreId, contractId } = req.params
     const actor = AccessControl.getActorFromReq(req)
+    req.body.actor = actor
     if (contractId === 'read') {
       console.log('read check')
       if (await AccessControl.canRead(datastoreId, actor)) {

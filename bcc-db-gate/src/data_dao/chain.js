@@ -111,10 +111,10 @@ module.exports = {
   getMasterAccountNonce: async chainId => {
     const { value } = await chainCollection.findOneAndUpdate(
       { _id: new ObjectID(chainId) },
-      { $inc: { masterAccountNonce: 1 } }
+      { $inc: { "deployment.masterAccountNonce": 1 } }
     )
     if (value === null) throw ChainNotFoundError
-    return { nonce: value.masterAccountNonce }
+    return { nonce: value.deployment.masterAccountNonce }
   },
 
   // append contract id from chain contract list

@@ -80,7 +80,8 @@ export default function AccessControlPanel(props) {
   if (access) {
     return (
       <div>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        {parentType === 'datastore' ? (
+          <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <Tabs.TabPane tab="Read White List" key="readWhiteList">
             {renderList(access.readWhiteList)}
           </Tabs.TabPane>
@@ -91,6 +92,17 @@ export default function AccessControlPanel(props) {
             {renderList(access.blackList)}
           </Tabs.TabPane>
         </Tabs>
+        ):(
+          <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          <Tabs.TabPane tab="Call White List" key="readWhiteList">
+            {renderList(access.readWhiteList)}
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Call Black List" key="blackList">
+            {renderList(access.blackList)}
+          </Tabs.TabPane>
+        </Tabs>
+        )}
+        
         <Divider />
         <Form layout="inline" form={actorForm} onFinish={appendActor}>
           <Form.Item

@@ -1,77 +1,164 @@
 import React, { useContext, useEffect, useState } from 'react'
 import moment from 'moment'
-import { Row, Col, Card, Typography, message, List, Tag } from 'antd'
-import { UserContext } from '../contexts/UserContext'
-import { getUserTaskList, getUserTask } from '../api'
+import {
+  Row,
+  Col,
+  Card,
+  Typography,
+  message,
+  List,
+  Tag,
+  Descriptions,
+  Statistic,
+} from 'antd'
+import {
+  AuditOutlined,
+  ClockCircleOutlined,
+  CloudServerOutlined,
+  DatabaseOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  SettingOutlined,
+  ShopOutlined,
+  ForkOutlined,
+  PictureOutlined,
+} from '@ant-design/icons'
+import { UserSessionContext } from '../contexts/UserSessionContext'
+import api from '../api/index'
 
 const { Text } = Typography
 
 export default function DashboardView() {
+  const { session } = React.useContext(UserSessionContext)
+  const [user, setUser] = React.useState(null)
 
-  const { user } = useContext(UserContext)
-  const [taskList, setTaskList] = useState([])
-
-  const fetchTaskList = async ()=>{
-    let userTaskList = []
-    const taskList = []
-    try {
-      userTaskList = await getUserTaskList(user.userId)
-    } catch (error) {
-      message.error(error.message)
+  const fetchUser = async () => {
+    const user = await api.user.getUser(session.userId)
+    const tasks = []
+    for (const taskId of user.tasks) {
+      const task = await api.task.getUserTask(session.userId, taskId)
+      tasks.push(task)
     }
-    for(const taskId of userTaskList){
-      try {
-        const task = await getUserTask(taskId)
-        taskList.push(task)
-      } catch (error) {
-        message.error(error.message)
-      }
-    }
-    setTaskList(taskList.reverse())
+    user.tasks = tasks
+    console.log(user)
+    setUser(user)
   }
 
-  useEffect(()=>{
-    fetchTaskList()
+  useEffect(() => {
+    fetchUser()
   }, [])
 
-  return (
-    <React.Fragment>
-      <Row gutter={[16, 16]}>
-        <Col span={16}>
-          <Card
-            hoverable
-            bodyStyle={{ width: '100%', padding: 30, height: 300 }}
-          >
-            <Text type="secondary" strong>
-              Recent Task
-            </Text>
-            <List
-              size="small"
-              split={false}
-              style={{ marginTop: 10, height: 200, overflowY: 'auto' }}
+  if (user) {
+    return (
+      <React.Fragment>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Card bodyStyle={{ width: '100%', padding: 30 }}>
+              <Card.Meta title="Profile" />
+              <Descriptions column={1} style={{marginTop: 20}}>
+                <Descriptions.Item label="Username">
+                  {user.email}
+                </Descriptions.Item>
+                <Descriptions.Item label="User ID">
+                  {user.userId}
+                </Descriptions.Item>
+                <Descriptions.Item label="Account Address">
+                  {user.accountAddr}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]}>
+          <Col span={8}>
+            <Card bodyStyle={{ width: '100%', padding: 30 }}>
+              <Card.Meta title="User Chain" />
+              <Statistic
+                value={user.chains.length + ' chain(s)'}
+                valueStyle={{ color: '#3f8600', fontSize: 30 }}
+                prefix={
+                  <ForkOutlined style={{ marginRight: 10, fontSize: 30 }} />
+                }
+                style={{ marginTop: 30 }}
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card bodyStyle={{ width: '100%', padding: 30 }}>
+              <Card.Meta title="User Project" />
+              <Statistic
+                value={user.projects.length + ' projects(s)'}
+                valueStyle={{ color: '#3f8600', fontSize: 30 }}
+                prefix={
+                  <PictureOutlined style={{ marginRight: 10, fontSize: 30 }} />
+                }
+                style={{ marginTop: 30 }}
+              />
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card bodyStyle={{ width: '100%', padding: 30 }}>
+              <Card.Meta title="User Service" />
+              <Statistic
+                value={user.services.length + ' services(s)'}
+                valueStyle={{ color: '#3f8600', fontSize: 30 }}
+                prefix={
+                  <CloudServerOutlined
+                    style={{ marginRight: 10, fontSize: 30 }}
+                  />
+                }
+                style={{ marginTop: 30 }}
+              />
+            </Card>
+          </Col>
+        </Row>
+        <Row gutter={[16, 16]}>
+          <Col span={16}>
+            <Card bodyStyle={{ width: '100%', padding: 30, height: 200 }}
+              
             >
-              {taskList.map(task => (
-                <List.Item
-                  key={`dashboard_taskList_${task.taskId}`}
-                  style={{ display: 'flex' }}
-                >
-                  <Tag>{task.taskType}</Tag>
-                  <Text style={{ flexGrow: 1 }}> </Text>
-                  <Tag>{task.taskStatus}</Tag>
-                  <Text type="secondary" style={{ marginRight: 10 }}>
-                    {moment(
-                      task.taskLog[task.taskLog.length - 1].timestamp
-                    ).fromNow()}
-                  </Text>
-                </List.Item>
-              ))}
-            </List>
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card style={{ width: '100%', height: 300 }}></Card>
-        </Col>
-      </Row>
-    </React.Fragment>
-  )
+              <Card.Meta title="Tasks" />
+              <List
+                size="small"
+                split={false}
+                style={{ marginTop: 10, height: 120, overflowY: 'scroll' }}
+              >
+                {user.tasks.map((task) => (
+                  <List.Item
+                    key={`dashboard_taskList_${task.taskId}`}
+                    style={{ display: 'flex' }}
+                  >
+                    <Text>{task.name}</Text>
+                    <Text style={{ flexGrow: 1 }}> </Text>
+                    <Text type="secondary" style={{ marginRight: 10 }}>
+                      {moment(
+                        task.logs[task.logs.length - 1].timestamp
+                      ).fromNow()}
+                    </Text>
+                    <Tag>{task.status}</Tag>
+                  </List.Item>
+                ))}
+              </List>
+            </Card>
+          </Col>
+          <Col span={8}>
+            <Card bodyStyle={{ width: '100%', padding: 30 }}>
+              <Card.Meta title="User Datastore" />
+              <Statistic
+                value={user.datastores.length + ' datastore(s)'}
+                valueStyle={{ color: '#3f8600', fontSize: 30 }}
+                prefix={
+                  <DatabaseOutlined style={{ marginRight: 10, fontSize: 30 }} />
+                }
+                style={{ marginTop: 30 }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </React.Fragment>
+    )
+  } else {
+    return null
+  }
 }

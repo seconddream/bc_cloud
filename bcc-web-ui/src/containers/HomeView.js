@@ -29,6 +29,7 @@ import ProjectView from './ProjectView'
 import ServiceListView from './ServiceListView'
 import DatastoreListView from './DatastoreListView'
 import DatastoreView from './DatastoreView'
+import DashboardView from './DashboardView'
 
 const { Sider, Content } = Layout
 
@@ -85,7 +86,7 @@ export default function HomeView() {
           <Content style={{ padding: 50 }}>
             <Switch>
               <Route path={`${path}/dashboard`}>
-                {/* <DashboardView /> */}
+                <DashboardView />
               </Route>
               <Route path={`${path}/chain/:chainId`}>
                 <ChainView />

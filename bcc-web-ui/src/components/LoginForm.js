@@ -26,7 +26,7 @@ function LoginForm(props) {
         justifyContent: 'center'
       }}
     >
-      <Form style={{ maxWidth: '300px' }} onSubmit={handleSubmit}>
+      <Form style={{ width: '300px' }} onSubmit={handleSubmit}>
         <Form.Item>
           {getFieldDecorator('email', {
             rules: [{ required: true, message: 'Please input your E-mail!' }]
