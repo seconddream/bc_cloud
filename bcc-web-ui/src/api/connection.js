@@ -14,7 +14,7 @@ const APIGateCall = async (method, url, body) => {
         window.localStorage.getItem('bcc_session')
       )
       if (localSession) {
-        console.log('set conn headers...')
+        // console.log('set conn headers...')
         token_signature = web3.eth.accounts.sign(
           token_timestamp,
           localSession.account.privateKey
@@ -24,7 +24,7 @@ const APIGateCall = async (method, url, body) => {
       console.log('Parse local session failed.')
       console.log(error)
     }
-    console.log(token_signature)
+    // console.log(token_signature)
     const req = await axios({
       method,
       url,
@@ -35,7 +35,6 @@ const APIGateCall = async (method, url, body) => {
       },
       data: body
     })
-    console.log(req)
     console.log(`%c ${method.toUpperCase()} -> ${url}`, 'color: grey')
     console.log(req.data)
     return req.data

@@ -52,6 +52,7 @@ export default function DatastoreView() {
   const [detailRowIndex, setDetailRowIndex] = React.useState(null)
   const [showCreateDataRow, setShowCreateDataRow] = React.useState(false)
   const [showModifySecurity, setShowModifySecurity] = React.useState(false)
+  const [showDatastoreCallAPI, setShowDatastoreCallAPI] = React.useState(false)
 
   // prepare table structure
   const parseDatastoreDisplayColumns = datastore => {
@@ -366,11 +367,20 @@ export default function DatastoreView() {
             </Button>
             <Button
               type="default"
+              style={{ marginRight: 10 }}
               onClick={() => {
                 setShowModifySecurity(true)
               }}
             >
               Security
+            </Button>
+            <Button
+              type="default"
+              onClick={() => {
+                setShowDatastoreCallAPI(true)
+              }}
+            >
+              API Endpoint
             </Button>
             <span style={{ flexGrow: 1 }}></span>
             <Input.Search
@@ -465,6 +475,34 @@ export default function DatastoreView() {
             footer={null}
           >
             {detailRowIndex !== null ? renderRowDetail(detailRowIndex) : null}
+          </Modal>
+          <Modal
+            title={`API Endpoint`}
+            visible={showDatastoreCallAPI}
+            width="80%"
+            onCancel={()=>{setShowDatastoreCallAPI(false)}}
+            footer={null}
+          >
+            <Descriptions title='Read Data' column={1}>
+              <Descriptions.Item label='Method'>POST</Descriptions.Item>
+              <Descriptions.Item label='URL'>{`http://10.0.1.4/api/datastore/${datastoreId}/read`}</Descriptions.Item>
+              <Descriptions.Item label='Arguments'>rowIndexSkip, retrieveCount, filters</Descriptions.Item>
+            </Descriptions>
+            <Descriptions title='Write Data Row' column={1}>
+              <Descriptions.Item label='Method'>POST</Descriptions.Item>
+              <Descriptions.Item label='URL'>{`http://10.0.1.4/api/datastore/${datastoreId}/${datastore.contract}/row`}</Descriptions.Item>
+          <Descriptions.Item label='Arguments'>{'row: { [columnName]: {columnName, columnDataType, dataValue} }'}</Descriptions.Item>
+            </Descriptions>
+            <Descriptions title='Revoke Data Row' column={1}>
+              <Descriptions.Item label='Method'>POST</Descriptions.Item>
+              <Descriptions.Item label='URL'>{`http://10.0.1.4/api/datastore/${datastoreId}/${datastore.contract}/data/:rowIndex`}</Descriptions.Item>
+              <Descriptions.Item label='Arguments'>None</Descriptions.Item>
+            </Descriptions>
+            <Descriptions title='Update Data Field' column={1}>
+              <Descriptions.Item label='Method'>PUT</Descriptions.Item>
+              <Descriptions.Item label='URL'>{`http://10.0.1.4/api/datastore/${datastoreId}/${datastore.contract}/data/:rowIndex/:columnIndex/dataValue`}</Descriptions.Item>
+              <Descriptions.Item label='Arguments'>columnName, columnDataType, dataValue</Descriptions.Item>
+            </Descriptions>
           </Modal>
         </React.Fragment>
       ) : null}
