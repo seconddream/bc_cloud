@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcc-web-ui-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: bcc-web-ui
+  template:
+    metadata:
+      labels:
+        component: bcc-web-ui
+    spec:
+      containers:
+        - name: bcc-web-ui
+          image: bsfans/bcc-web-ui
+          ports:
+            - containerPort: 3000

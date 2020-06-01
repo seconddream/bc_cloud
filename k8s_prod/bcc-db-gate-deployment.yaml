@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bcc-db-gate-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: bcc-db-gate
+  template:
+    metadata:
+      labels:
+        component: bcc-db-gate
+    spec:
+      serviceAccountName: bcc-agent
+      containers:
+        - name: db-gate
+          image: bsfans/bcc-db-gate
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bcc-db-credential
+                  key: password

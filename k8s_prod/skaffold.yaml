@@ -1,0 +1,22 @@
+apiVersion: skaffold/v1beta13
+kind: Config
+metadata:
+  name: bc-cloud
+build:
+  local:
+    push: false
+deploy:
+  kubectl:
+    manifests:
+      - ./bcc-web-ui-cluster-ip.yaml
+      - ./bcc-web-ui-deployment.yaml
+      - ./bcc-db-gate-cluster-ip.yaml
+      - ./bcc-db-gate-deployment.yaml
+      - ./bcc-api-gate-cluster-ip.yaml
+      - ./bcc-api-gate-deployment.yaml
+      - ./bcc-transaction-gate-cluster-ip.yaml
+      - ./bcc-transaction-gate-deployment.yaml
+      - ./bcc-agent-deployment.yaml
+      - ./ingress.yaml
+
+
