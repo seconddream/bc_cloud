@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: bcc-transaction-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       component: bcc-transaction-gate

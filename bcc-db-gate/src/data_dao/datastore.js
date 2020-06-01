@@ -248,6 +248,7 @@ const confirmDataWritten = async (
     }
   )
   if (value === null) throw new Error('No data row found.')
+  console.log(`transaction confirmed: ${moment().valueOf()}`)
 }
 
 const readDataRow = async (
