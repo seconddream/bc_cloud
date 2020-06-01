@@ -3,7 +3,7 @@ const moment = require('moment')
 const Web3 = require('web3')
 const web3 = new Web3()
 
-const baseURL = 'api'
+const baseURL = 'http://51.138.92.130/api'
 
 const APIGateCall = async (method, url, body) => {
   try {
