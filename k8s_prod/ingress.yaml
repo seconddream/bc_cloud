@@ -8,19 +8,19 @@ metadata:
     kubernetes.io/ingress.class: addon-http-application-routing
 spec:
   rules:
-    - host: bc-cloud-dns-930181d7.hcp.westeurope.azmk8s.io
-      - http:
-          paths: 
-            - path: /db/?(.*)
-              backend:
-                serviceName: bcc-db
-                servicePort: 27017
-            - path: /api/?(.*)
-              backend:
-                serviceName: bcc-api-gate
-                servicePort: 5000
-            - path: /?(.*)
-              backend:  
-                serviceName: bcc-web-ui
-                servicePort: 3000
+  - host: bc-cloud-dns-930181d7.hcp.westeurope.azmk8s.io
+    http:
+      paths: 
+        - path: /db/?(.*)
+          backend:
+            serviceName: bcc-db
+            servicePort: 27017
+        - path: /api/?(.*)
+          backend:
+            serviceName: bcc-api-gate
+            servicePort: 5000
+        - path: /?(.*)
+          backend:  
+            serviceName: bcc-web-ui
+            servicePort: 3000
           
