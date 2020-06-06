@@ -8,7 +8,7 @@ metadata:
     kubernetes.io/ingress.class: addon-http-application-routing
 spec:
   rules:
-  - host: bc-cloud.bc-cloud-dns-930181d7.hcp.westeurope.azmk8s.io
+  - host: bc-cloud.87641f1d26cc497db751.westeurope.aksapp.io
     http:
       paths: 
         - path: /db/?(.*)
