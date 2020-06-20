@@ -3,8 +3,22 @@ const c = require('ansi-colors')
 
 const UserControl = require('../control/UserControl')
 const AccessControl = require('../control/AccessControl')
+const TaskControl = require('../control/TaskControl')
+
 
 const router = new Router()
+
+router.post('/test', async(req, res, next)=>{
+  try {
+    const {userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId } = req.body
+    res.send(await TaskControl.createPerformanceTestTask(
+      userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId
+    ))
+  } catch (error) {
+    next(error)
+  }
+})
+
 
 router.all('/user/:userId*', async (req, res, next) => {
   try {

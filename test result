@@ -1,0 +1,46 @@
+ Task created.
+ Task pushed to queue.
+ Task 5edcd2285ac8e90028958964 started.
+ Service Performance Test(Call only) - Target Chain1
+ Service Performance Test(Transaction) - Target Chain1
+
+ 5 rounds of 100 requests to 5edca6ccc84ff800282694e8 on chain1 | [952,657,637,629,595] | average: 694 ms.
+
+ 5 rounds of 100 requests to 5edca6dc5c19d30028d2b175 on chain1 | [2791,2717,2733,2679,2649] | average: 2713.8 ms.
+ Performance Comparsion Test(Call only) - Target Chain1 vs Chain2
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [369,290,295,340,293] | average: 317.4 ms.
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [315,294,280,318,325] | average: 306.4 ms.
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [306,287,281,281,278] | average: 286.6 ms.
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [266,293,331,285,296] | average: 294.2 ms.
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [364,952,4032,2003,283] | average: 1526.8 ms.
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [1738,272,1744,291,30075] | average: 6824 ms.
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [480,343,313,303,316] | average: 351 ms.
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [309,319,295,341,308] | average: 314.4 ms.
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [285,287,298,317,7401] | average: 1717.6 ms.
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [6157,8612,30089,371,314] | average: 9108.6 ms.
+ 5 rounds of 50 requests to 5edca6ccc84ff800282694e8 on chain1 | [303,303,316,316,294] | average: 306.4 ms.
+ Performance Comparsion Test(Transaction) - Target Chain1 vs Chain2
+ 5 rounds of 50 requests to 5edca6ecc84ff800282694ea on chain2 | [30074,340,302,324,317] | average: 6271.4 ms.
+ chain1 averages: [317.4,286.6,1526.8,351,1717.6,306.4]
+ chain2 averages: [306.4,294.2,6824,314.4,9108.6,6271.4]
+
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [7104,30077,2424,2360,7392] | average: 9871.4 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [193,175,182,178,181] | average: 181.8 ms.
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [17634,2640,21134,2981,3016] | average: 9481 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [179,172,171,176,171] | average: 173.8 ms.
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [5148,3062,3001,2362,2352] | average: 3185 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [177,167,174,166,164] | average: 169.6 ms.
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [2327,2320,2331,2336,3289] | average: 2520.6 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [176,167,165,171,303] | average: 196.4 ms.
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [2350,2403,3267,2309,2339] | average: 2533.6 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [156,160,164,166,163] | average: 161.8 ms.
+ 5 rounds of 50 requests to 5edca6dc5c19d30028d2b175 on chain1 | [2371,4342,2999,3038,2345] | average: 3019 ms.
+ 5 rounds of 50 requests to undefined on chain2 | [164,158,162,160,171] | average: 163 ms.
+ chain2 averages: [181.8,173.8,169.6,196.4,161.8,163]
+ chain1 averages: [9871.4,9481,3185,2520.6,2533.6,3019]
+ Datastore Write Test - 100 data rows
+
+ Test took 2297 ms.
+ Datastore Read Test - 100 read operation of first 10 rows.
+ Test took 1762 ms.
+ Task 5edcd2285ac8e90028958964 ended.

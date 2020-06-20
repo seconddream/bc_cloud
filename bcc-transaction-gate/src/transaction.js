@@ -88,7 +88,7 @@ const deployContract = async (
   const namespace = chain.deployment.namespace
   const providerURL = `http://transaction.${namespace}.svc.cluster.local:8545`
   const web3 = new Web3(providerURL)
-  console.log(await web3.eth.getBlockNumber())
+  console.log(`reading current blocknumber: ${await web3.eth.getBlockNumber()}`)
 
   // use master account in chain for transaction
   const { account, privateKey } = await k8s.getChainMasterAccount(namespace)
@@ -116,8 +116,10 @@ const deployContract = async (
   )
 
   // send transaction to chain
+  console.log('Sending transaction...')
   const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-
+  console.log('transaction finished.')
+  console.log(receipt)
   return receipt
 }
 

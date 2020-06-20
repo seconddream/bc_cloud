@@ -261,6 +261,7 @@ const createSealerNodeDeployment = async (
                 '-c',
                 `geth \
                 --datadir /bcc/data \
+                --ipcdisable \
                 --bootnodes=\`cat /bcc/bootnode-data/bootnodeAddress\`@$(BOOTNODE_SERVICE_HOST):30301 \
                 --port 30303 \
                 --unlock $(ACCOUNT_ADDRESS) \
@@ -452,6 +453,7 @@ const createTransactionNodeDeployment = async (chainName, count) => {
               args: [
                 '-c',
                 `geth \
+                --datadir /bcc/data \
                 --bootnodes=\`cat /bcc/bootnode-data/bootnodeAddress\`@$(BOOTNODE_SERVICE_HOST):30301 \
                 --port 30303 \
                 --rpc \
@@ -499,7 +501,7 @@ const createTransactionNodeDeployment = async (chainName, count) => {
               volumeMounts: [
                 { name: 'network', mountPath: '/bcc/network' },
                 { name: 'bootnode-data', mountPath: '/bcc/bootnode-data' },
-                { name: 'data', mountPath: '/root/.ethereum' }
+                { name: 'data', mountPath: '/bcc/data' }
               ]
             },
             {
@@ -534,11 +536,11 @@ const createTransactionNodeDeployment = async (chainName, count) => {
               image: 'ethereum/client-go:alltools-latest',
               imagePullPolicy: 'IfNotPresent',
               command: ['/bin/sh'],
-              args: ['-c', `geth init /bcc/network/genesis`],
+              args: ['-c', `geth --datadir /bcc/data init /bcc/network/genesis`],
               env: [],
               volumeMounts: [
                 { name: 'network', mountPath: '/bcc/network' },
-                { name: 'data', mountPath: '/root/.ethereum' }
+                { name: 'data', mountPath: '/bcc/data' }
               ]
             }
           ]
@@ -666,6 +668,9 @@ module.exports = async (task, taskLogger) => {
     // deploy boot node
     await createBootnodeService(chainName)
     await createBootnodeDeployment(chainName)
+
+    await k8s.waitAllPodsOnline(chainName, 5 * 60)
+    taskLogger.info(`Bootnode online...`)
 
     taskLogger.info(`Creating sealer nodes...`)
     // deploy sealer nodes

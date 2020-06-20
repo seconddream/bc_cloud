@@ -10,6 +10,8 @@ import {
   Tag,
   Descriptions,
   Statistic,
+  Button,
+  Drawer,
 } from 'antd'
 import {
   AuditOutlined,
@@ -26,11 +28,16 @@ import {
 import { UserSessionContext } from '../contexts/UserSessionContext'
 import api from '../api/index'
 
+import TaskConsolePopUp from '../components/TaskConsolePopUp'
+import PerformanceTestForm from '../components/PerformanceTestForm'
+
 const { Text } = Typography
 
 export default function DashboardView() {
   const { session } = React.useContext(UserSessionContext)
   const [user, setUser] = React.useState(null)
+  const [monitorTask, setMonitorTask] = React.useState(null)
+  const [showRunTest, setShowRunTest] = React.useState(false)
 
   const fetchUser = async () => {
     const user = await api.user.getUser(session.userId)
@@ -44,6 +51,33 @@ export default function DashboardView() {
     setUser(user)
   }
 
+  const createTest = async ({
+    pk,
+    serviceId1c,
+    serviceId1t,
+    serviceId2c,
+    serviceid2t,
+    datastoreId,
+    contractId,
+  }) => {
+    try {
+      const { taskId } = await api.task.createPerformanceTestTask(
+        session.userId,
+        pk,
+        serviceId1c,
+        serviceId1t,
+        serviceId2c,
+        serviceid2t,
+        datastoreId,
+        contractId
+      )
+      setMonitorTask(taskId)
+    } catch (error) {
+      console.log(error)
+      message.error(error.message)
+    }
+  }
+
   useEffect(() => {
     fetchUser()
   }, [])
@@ -51,11 +85,19 @@ export default function DashboardView() {
   if (user) {
     return (
       <React.Fragment>
+        {monitorTask ? (
+          <TaskConsolePopUp
+            taskId={monitorTask}
+            onClose={async () => {
+              setMonitorTask(null)
+            }}
+          />
+        ) : null}
         <Row gutter={[16, 16]}>
           <Col span={24}>
             <Card bodyStyle={{ width: '100%', padding: 30 }}>
               <Card.Meta title="Profile" />
-              <Descriptions column={1} style={{marginTop: 20}}>
+              <Descriptions column={1} style={{ marginTop: 20 }}>
                 <Descriptions.Item label="Username">
                   {user.email}
                 </Descriptions.Item>
@@ -115,9 +157,7 @@ export default function DashboardView() {
         </Row>
         <Row gutter={[16, 16]}>
           <Col span={16}>
-            <Card bodyStyle={{ width: '100%', padding: 30, height: 200 }}
-              
-            >
+            <Card bodyStyle={{ width: '100%', padding: 30, height: 200 }}>
               <Card.Meta title="Tasks" />
               <List
                 size="small"
@@ -156,6 +196,26 @@ export default function DashboardView() {
             </Card>
           </Col>
         </Row>
+
+        <Button
+          type="primary"
+          onClick={() => {
+            setShowRunTest(true)
+          }}
+        >
+          Run Performance Test
+        </Button>
+        {/* create datastore drawer ------------------------------------------ */}
+        <Drawer
+          title="Performance Test"
+          width={500}
+          visible={showRunTest}
+          onClose={() => {
+            setShowRunTest(false)
+          }}
+        >
+          <PerformanceTestForm valueCallback={createTest} />
+        </Drawer>
       </React.Fragment>
     )
   } else {

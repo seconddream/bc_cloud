@@ -65,8 +65,8 @@ const createPVC = async (namespaceName, pvcName, storage) => {
     await k8sCoreV1Api.createNamespacedPersistentVolumeClaim(namespaceName, {
       metadata: { name: pvcName },
       spec: {
-        storageClassName: 'default',
-        accessModes: ['ReadWriteOnce'],
+        storageClassName: 'azurefile',
+        accessModes: ['ReadWriteMany'],
         resources: {
           requests: {
             storage

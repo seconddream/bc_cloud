@@ -7,9 +7,10 @@ const chainDelete = require('./task_handler/chain_delete')
 const datastoreDeploy = require('./task_handler/datastore_deploy')
 const projectArtifactDeploy = require('./task_handler/project_artifact_deploy')
 const projectCompile = require('./task_handler/project_compile')
+const performance = require('./task_handler/performance_test')
 
 module.exports = {
-  run: async task => {
+  run: async (task) => {
     const { taskId, type } = task
     const taskLogger = getTaskLogger(taskId)
     taskLogger.start()
@@ -35,6 +36,9 @@ module.exports = {
         case 'PROJECT_COMPILE':
           taskHandler = projectCompile
           break
+        case 'PERFORMANCE':
+          taskHandler = performance
+          break
 
         default:
           throw new Error(`Task type: ${type} not implemented.`)
@@ -48,5 +52,5 @@ module.exports = {
       taskLogger.end()
       await callDBGate('/task/updateStatus', { taskId, status: 'Terminated' })
     }
-  }
+  },
 }
