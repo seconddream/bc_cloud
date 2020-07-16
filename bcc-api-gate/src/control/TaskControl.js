@@ -107,8 +107,8 @@ module.exports = {
     return { taskId }
   },
 
-  createPerformanceTestTask: async (userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId )=>{
-    const params = {userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId }
+  createPerformanceTestTask: async (userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId )=>{
+    const params = {userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId }
     const taskId = await createTask(
       userId,
       'PERFORMANCE',

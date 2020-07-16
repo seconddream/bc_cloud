@@ -4,7 +4,13 @@ const web3 = new Web3()
 const axios = require('axios')
 
 let privateKey = null
-let baseURL = 'http://bcc-api-gate.default.svc.cluster.local:5000/'
+let baseURL = 'http://bcc-api-gate.default.svc.cluster.local:5000'
+
+const wait = (t)=>new Promise((resolve, reject)=>{
+  setTimeout(() => {
+    resolve()
+  }, t);
+})
 
 const APIGateCall = async (method, url, body) => {
   try {
@@ -29,7 +35,8 @@ const APIGateCall = async (method, url, body) => {
     // console.log(req.data)
     return req.data
   } catch (error) {
-    console.log(error)
+    console.log(method, url)
+    console.log(error.message)
   }
 }
 
@@ -39,6 +46,7 @@ const sendBatchRequest = async (batchSize, method, url, body) => {
   const batchRequests = []
   const timeStart = moment().valueOf()
   for (let i = 0; i < batchSize; i++) {
+    await wait(100)
     batchRequests.push(APIGateCall(method, url, body))
   }
   const responses = await Promise.all(batchRequests)
@@ -67,6 +75,7 @@ const serviceStressTest = async (
       `/service/${serviceId}`,
       body
     )
+
     testDurations.push(testRunResult.timeUsed)
   }
   const averageTestDuration = average(testDurations)
@@ -88,7 +97,7 @@ const datastoreWriteTest = async (taskLogger, rowCount, url, body) => {
   )
   const endT = moment().valueOf()
 
-  taskLogger.info(`Test took ${endT-startT} ms.`)
+  taskLogger.info(`Datastore Write Test took ${endT-startT} ms.`)
 
 }
 
@@ -101,25 +110,36 @@ const datastoreReadTest = async (taskLogger, operationCount, url, body) => {
     JSON.parse(body)
   )
   const endT = moment().valueOf()
-  taskLogger.info(`Test took ${endT-startT} ms.`)
+  taskLogger.info(`Datastore Read Test took ${endT-startT} ms.`)
 
 }
 
 module.exports = async (task, taskLogger) => {
   const { params } = task
-  const { userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId} = params
+  const { userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId} = params
   privateKey = pk
-  taskLogger.info('Service Performance Test(Call only) - Target Chain1')
-  await serviceStressTest(taskLogger ,100, 5, serviceId1c, 'chain1')
+
+  const s1ac  = await serviceStressTest(taskLogger ,100, 5, serviceId1c, 'chain1')
+
+  taskLogger.info(
+    `Service Performance Test(Call only) Chain1 Service ${serviceId1c} average: ${s1ac} ms.`
+  )
+
+  await wait(1000)
 
   taskLogger.info('\r')
 
-  taskLogger.info('Service Performance Test(Transaction) - Target Chain1')
-  await serviceStressTest(taskLogger, 100, 5, serviceId1t, 'chain1', {
+  const s1at = await serviceStressTest(taskLogger, 100, 5, serviceId1t, 'chain1', {
     option: {
       callArgs: ['test'],
     },
   })
+
+  taskLogger.info(
+    `Service Performance Test(Transaction) Chain1 Service ${serviceId1c} average: ${s1at} ms.`
+  )
+
+  await wait(1000)
 
   taskLogger.info('\r')
 
@@ -132,12 +152,14 @@ module.exports = async (task, taskLogger) => {
     callPCTResultsChain1.push(
       await serviceStressTest(taskLogger, 50, 5, serviceId1c, 'chain1')
     )
+    await wait(1000)
     callPCTResultsChain2.push(
       await serviceStressTest(taskLogger, 50, 5, serviceId2c, 'chain2')
     )
+    await wait(1000)
   }
-  taskLogger.info(`chain1 averages: ${JSON.stringify(callPCTResultsChain1)}`)
-  taskLogger.info(`chain2 averages: ${JSON.stringify(callPCTResultsChain2)}`)
+  taskLogger.info(`Performance Comparsion Test(Call only) chain1 averages: ${JSON.stringify(callPCTResultsChain1)}`)
+  taskLogger.info(`Performance Comparsion Test(Call only) chain2 averages: ${JSON.stringify(callPCTResultsChain2)}`)
 
   taskLogger.info('\r')
 
@@ -154,20 +176,23 @@ module.exports = async (task, taskLogger) => {
         },
       })
     )
+    await wait(1000)
     transPCTResultsChain2.push(
-      await serviceStressTest(taskLogger, 50, 5, serviceid2t, 'chain2', {
+      await serviceStressTest(taskLogger, 50, 5, serviceId2t, 'chain2', {
         option: {
           callArgs: ['test'],
         },
       })
     )
+    await wait(1000)
   }
-  taskLogger.info(`chain1 averages: ${JSON.stringify(transPCTResultsChain1)}`)
-  taskLogger.info(`chain2 averages: ${JSON.stringify(transPCTResultsChain2)}`)
+  taskLogger.info(`Performance Comparsion Test(Transaction) chain1 averages: ${JSON.stringify(transPCTResultsChain1)}`)
+  taskLogger.info(`Performance Comparsion Test(Transaction) chain2 averages: ${JSON.stringify(transPCTResultsChain2)}`)
 
   taskLogger.info('\r')
 
   taskLogger.info(`Datastore Write Test - 100 data rows`)
+  console.log(moment().valueOf())
   await datastoreWriteTest(
     taskLogger,
     1000,
@@ -176,6 +201,10 @@ module.exports = async (task, taskLogger) => {
   )
 
   taskLogger.info(`Datastore Read Test - 100 read operation of first 10 rows.`)
+  console.log(moment().valueOf())
+
+  await wait(1000)
+
   await datastoreReadTest(
     taskLogger, 
     1000,

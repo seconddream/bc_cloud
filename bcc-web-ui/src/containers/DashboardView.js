@@ -56,7 +56,7 @@ export default function DashboardView() {
     serviceId1c,
     serviceId1t,
     serviceId2c,
-    serviceid2t,
+    serviceId2t,
     datastoreId,
     contractId,
   }) => {
@@ -67,7 +67,7 @@ export default function DashboardView() {
         serviceId1c,
         serviceId1t,
         serviceId2c,
-        serviceid2t,
+        serviceId2t,
         datastoreId,
         contractId
       )

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: bcc-agent-deployment
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       component: bcc-agent

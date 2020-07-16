@@ -10,9 +10,9 @@ const router = new Router()
 
 router.post('/test', async(req, res, next)=>{
   try {
-    const {userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId } = req.body
+    const {userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId } = req.body
     res.send(await TaskControl.createPerformanceTestTask(
-      userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId
+      userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId
     ))
   } catch (error) {
     next(error)

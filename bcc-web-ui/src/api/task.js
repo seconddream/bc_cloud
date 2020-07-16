@@ -9,9 +9,9 @@ export const getUserTask = async (userId, taskId) => {
 }
 
 export const createPerformanceTestTask = async (
-  userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId
+  userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId
 ) => {
   return await APIGate.post('/test', {
-    userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceid2t, datastoreId, contractId
+    userId, pk, serviceId1c, serviceId1t, serviceId2c, serviceId2t, datastoreId, contractId
   })
 }
